@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}About · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <p class="eyebrow">About</p>
+  <h1>The Atelier</h1>
+</section>
+<section class="wrap prose">
+  <p class="lede dark">SOLE ATELIER is an independent sneaker boutique concept: limited releases, exceptional design, unmistakable presence.</p>
+  <p>We believe the best sneakers are chosen, not collected. Each silhouette on our shelf earns its place through proportion, restraint and a single considered detail. The result is a short list with a clear point of view.</p>
+  <h2>What this site is</h2>
+  <p>This is a portfolio and learning project: a working storefront built with Python (FastAPI), server-rendered templates and a relational database, designed to run on AWS. The products, prices, stock levels and journal entries are fictional demonstration content, and the product images are original illustrations rather than photographs.</p>
+  <p>Checkout records a demonstration order only. No payment is processed, no card data is collected and nothing is shipped. Nothing here is a claim that any product is authentic, limited or affiliated with any other brand.</p>
+  <a class="btn btn-primary" href="/shop">Explore the Collection</a>
+</section>
+{% endblock %}

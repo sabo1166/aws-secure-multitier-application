@@ -1,0 +1,65 @@
+{
+  "title": "Target Architecture — AWS Deployment Pending",
+  "note": "Nothing on this page is running in AWS. The local application runs on SQLite; every component below is a design and is marked Planned until there is evidence.",
+  "zones": [
+    { "id": "internet", "name": "Internet", "trust": "Untrusted", "detail": "Anyone. The only way in is the load balancer on TCP 80." },
+    { "id": "public", "name": "Public subnets", "trust": "Reachable from the internet", "cidrs": ["10.0.0.0/24", "10.0.1.0/24"], "sg": "alb-sg", "detail": "Hold the load balancer and the NAT gateway. The route table sends 0.0.0.0/0 to the internet gateway." },
+    { "id": "app", "name": "Private app subnets", "trust": "No public IP, no inbound from the internet", "cidrs": ["10.0.10.0/24", "10.0.11.0/24"], "sg": "app-sg", "detail": "Hold the application instances. Outbound traffic leaves through the NAT gateway." },
+    { "id": "db", "name": "Private database subnets", "trust": "No route to the internet", "cidrs": ["10.0.20.0/24", "10.0.21.0/24"], "sg": "db-sg", "detail": "Hold the database. The route table has only the local route." },
+    { "id": "aws", "name": "AWS service endpoints", "trust": "Public endpoints, reached over HTTPS through the NAT gateway", "detail": "Secrets Manager and Systems Manager are regional services outside the VPC." }
+  ],
+  "components": [
+    { "id": "browser", "name": "Customer browser", "zone": "internet", "kind": "client", "ports": ["HTTP 80"],
+      "summary": "Sends requests to the load balancer's public DNS name. The site is HTTP only for now, so traffic and the session cookie are not encrypted in transit.",
+      "controls": ["No credentials or keys involved", "Cart is a signed cookie holding ids and quantities only"], "decisions": ["D-009", "D-016"], "evidence": ["E-009"] },
+    { "id": "igw", "name": "Internet gateway", "zone": "public", "kind": "network", "ports": [],
+      "summary": "The route out of and into the VPC. A subnet is public only because its route table points 0.0.0.0/0 here.",
+      "controls": ["Attached to the VPC", "Only the public route table points at it"], "decisions": ["D-003"], "evidence": ["E-003", "E-004"] },
+    { "id": "alb", "name": "Application Load Balancer", "zone": "public", "kind": "entry", "ports": ["in: 80", "out: 8080"],
+      "summary": "The only internet-facing component. It terminates HTTP, spreads requests across the healthy instances in both AZs, and checks GET /health.",
+      "controls": ["alb-sg: TCP 80 from 0.0.0.0/0", "alb-sg outbound: TCP 8080 to app-sg only", "Health check is liveness only and does not query the database"], "decisions": ["D-004", "D-009", "D-013"], "evidence": ["E-005", "E-009"] },
+    { "id": "nat", "name": "NAT gateway", "zone": "public", "kind": "network", "ports": ["out: 443"],
+      "summary": "Gives the private instances an outbound path for package installs, Secrets Manager and Session Manager. One gateway in AZ a, created late and deleted first because it bills by the hour.",
+      "controls": ["Instances get no inbound path through it", "Single point of failure for private egress (accepted)"], "decisions": ["D-006"], "evidence": ["E-004"] },
+    { "id": "app", "name": "Application instances (FastAPI)", "zone": "app", "kind": "compute", "ports": ["in: 8080", "out: 3306, 443"],
+      "summary": "Two instances, one per AZ, in an Auto Scaling group. They run the FastAPI backend and render the server-side frontend. Prices and stock are recomputed from the database on every request.",
+      "controls": ["app-sg: TCP 8080 from alb-sg only; no port 22", "No public IP, no key pair; shell through Session Manager", "IMDSv2 required", "Instance role may read two named secrets"], "decisions": ["D-004", "D-005", "D-010", "D-014"], "evidence": ["E-010", "E-011", "E-012"] },
+    { "id": "rds", "name": "RDS for MySQL 8.4", "zone": "db", "kind": "data", "ports": ["in: 3306"],
+      "summary": "Holds products, per-size stock, orders and order lines. One instance in AZ a; the second database subnet exists only because a DB subnet group must span two AZs.",
+      "controls": ["db-sg: TCP 3306 from app-sg only; no outbound rules", "Publicly accessible: No; encrypted at rest", "The app connects as a user with SELECT, INSERT, UPDATE, DELETE only"], "decisions": ["D-007", "D-008"], "evidence": ["E-006", "E-007", "E-008"] },
+    { "id": "secrets", "name": "Secrets Manager", "zone": "aws", "kind": "service", "ports": ["443"],
+      "summary": "Stores the application's database credentials and the session-signing key, so neither appears in code, user data or screenshots. Read once at startup.",
+      "controls": ["Role allows GetSecretValue on two named secrets only", "App user's password and the session key are not rotated (accepted)"], "decisions": ["D-008", "D-016"], "evidence": ["E-011", "E-013"] },
+    { "id": "ssm", "name": "Systems Manager (Session Manager)", "zone": "aws", "kind": "service", "ports": ["443"],
+      "summary": "Opens an administrator shell without any inbound port. The agent on the instance keeps an outbound HTTPS connection, and the session is relayed over it.",
+      "controls": ["No port 22 anywhere, no key pair", "Access is controlled by IAM, not by a key file"], "decisions": ["D-005"], "evidence": ["E-011"] }
+  ],
+  "flows": [
+    { "id": "request", "title": "A customer request", "intro": "From a browser to the database and back. Every hop crosses a security group that names its caller.",
+      "steps": [
+        { "edges": [{ "id": "edge-browser-igw" }], "focus": ["browser", "igw"], "label": "HTTP 80", "text": "The browser sends HTTP to the load balancer's public DNS name. The only rule that accepts the internet is alb-sg: TCP 80 from 0.0.0.0/0." },
+        { "edges": [{ "id": "edge-igw-alb" }], "focus": ["igw", "alb"], "label": "into the VPC", "text": "The internet gateway routes the request into the public subnets, where the load balancer has a node in each Availability Zone." },
+        { "edges": [{ "id": "edge-alb-app-a" }], "focus": ["alb", "app"], "label": "8080", "text": "The load balancer picks a healthy instance. app-sg accepts port 8080 only from alb-sg, so the instances are unreachable except through the load balancer." },
+        { "edges": [{ "id": "edge-app-rds" }], "focus": ["app", "rds"], "label": "3306", "text": "The application validates the request, re-prices the cart from the database and, for an order, reserves stock with one conditional UPDATE. db-sg accepts 3306 only from app-sg." },
+        { "edges": [{ "id": "edge-app-rds", "reverse": true }], "focus": ["rds", "app"], "label": "rows", "text": "The database answers on the same connection. Security groups are stateful, so the reply needs no extra rule." },
+        { "edges": [{ "id": "edge-alb-app-a", "reverse": true }], "focus": ["app", "alb"], "label": "HTML", "text": "The instance renders the page from its Jinja2 template and returns it to the load balancer." },
+        { "edges": [{ "id": "edge-igw-alb", "reverse": true }, { "id": "edge-browser-igw", "reverse": true }], "focus": ["alb", "igw", "browser"], "label": "response", "text": "The response goes back out through the internet gateway to the browser." }
+      ] },
+    { "id": "startup", "title": "Startup: reading secrets", "intro": "How an instance gets its database password without the password being written anywhere.",
+      "steps": [
+        { "edges": [{ "id": "edge-app-nat" }], "focus": ["app", "nat"], "label": "443 out", "text": "At startup the application asks Secrets Manager for its credentials. The private subnet's route table sends outbound traffic to the NAT gateway." },
+        { "edges": [{ "id": "edge-nat-secrets" }], "focus": ["nat", "secrets"], "label": "HTTPS", "text": "The NAT gateway forwards the call through the internet gateway to the public Secrets Manager endpoint. The instance role, not a stored key, authorises it." },
+        { "edges": [{ "id": "edge-nat-secrets", "reverse": true }, { "id": "edge-app-nat", "reverse": true }], "focus": ["secrets", "app"], "label": "2 secrets", "text": "The secrets come back: the database credentials and the session key. They stay in process memory. If the call fails, the app stops instead of starting without them." }
+      ] },
+    { "id": "admin", "title": "Admin shell without SSH", "intro": "No inbound port, no key pair. The instance reaches out; the console session rides that connection.",
+      "steps": [
+        { "edges": [{ "id": "edge-app-nat" }, { "id": "edge-nat-ssm" }], "focus": ["app", "nat", "ssm"], "label": "outbound 443", "text": "The SSM agent on the instance keeps an outbound HTTPS connection to Systems Manager through the NAT gateway. Nothing listens for inbound connections." },
+        { "edges": [{ "id": "edge-nat-ssm", "reverse": true }, { "id": "edge-app-nat", "reverse": true }], "focus": ["ssm", "app"], "label": "session", "text": "When an administrator opens Session Manager in the console, IAM authorises it and the shell is relayed over that same outbound connection." }
+      ] },
+    { "id": "health", "title": "Load balancer health check", "intro": "The check is deliberately shallow.",
+      "steps": [
+        { "edges": [{ "id": "edge-alb-app-a" }], "focus": ["alb", "app"], "label": "GET /health", "text": "The load balancer calls /health on each instance. It returns 200 without touching the database." },
+        { "edges": [{ "id": "edge-alb-app-a", "reverse": true }], "focus": ["app", "alb"], "label": "200 OK", "text": "If the check also queried the database, a short database outage would mark every instance unhealthy and turn a partial failure into a full outage. /health/ready does query it, for people to use." }
+      ] }
+  ]
+}

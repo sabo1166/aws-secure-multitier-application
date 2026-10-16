@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ store_name }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}SOLE ATELIER: a demonstration sneaker boutique. Built Different. Worn Rare.{% endblock %}">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="preload" href="/static/fonts/cormorant-garamond-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/site.css">
+  <link rel="stylesheet" href="/static/css/modern.css">
+  <script src="/static/js/boot.js"></script>
+  <script src="/static/js/site.js" defer></script>
+  <script src="/static/js/motion.js" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announce" role="note">Demonstration store &middot; fictional products &middot; no payments are taken &middot; <a href="/architecture">How it is built</a></div>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="wordmark" href="/" aria-label="{{ store_name }}, home">SOLE <span>ATELIER</span></a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+        <span class="sr-only">Menu</span><span class="bars" aria-hidden="true"></span>
+      </button>
+
+      <nav id="primary-nav" class="primary-nav" aria-label="Primary">
+        <ul>
+          <li><a href="/shop">Shop</a></li>
+          <li><a href="/shop?new=true">New Arrivals</a></li>
+          <li><a href="/collections">Collections</a></li>
+          <li><a href="/journal">The Journal</a></li>
+          <li><a href="/about">About</a></li>
+        </ul>
+        <form class="search" action="/shop" method="get" role="search">
+          <label class="sr-only" for="site-search">Search sneakers by name</label>
+          <input id="site-search" name="q" type="search" placeholder="Search" maxlength="80" autocomplete="off">
+          <button type="submit" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg></button>
+        </form>
+      </nav>
+
+      <a class="bag" href="/cart" aria-label="Shopping bag, {{ cart_count }} item{{ '' if cart_count == 1 else 's' }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+        <span class="bag-label">Bag</span> <span class="bag-count" data-cart-count>{{ cart_count }}</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p class="wordmark small">SOLE <span>ATELIER</span></p>
+        <p class="tagline">Built Different. Worn Rare.</p>
+        <p class="muted">A demonstration storefront. Products, prices and stock are fictional.</p>
+      </div>
+      <nav aria-label="Shop">
+        <h2>Shop</h2>
+        <ul>
+          <li><a href="/shop">All sneakers</a></li>
+          <li><a href="/shop?new=true">New Arrivals</a></li>
+          <li><a href="/collections">Collections</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Atelier">
+        <h2>Atelier</h2>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/journal">The Journal</a></li>
+          <li><a href="/policies">Policies</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Engineering">
+        <h2>Behind the build</h2>
+        <ul>
+          <li><a href="/architecture">Architecture</a></li>
+          <li><a href="/roadmap">Roadmap</a></li>
+        </ul>
+      </nav>
+      <div>
+        <h2>Contact</h2>
+        <p class="muted">Contact details are not configured in this demonstration.</p>
+      </div>
+    </div>
+    <div class="wrap footer-base">
+      <span>&copy; SOLE ATELIER demonstration project</span>
+      <span>Illustrations are original artwork, not photographs.</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

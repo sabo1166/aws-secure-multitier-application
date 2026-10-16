@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Roadmap · {{ store_name }}{% endblock %}
+{% block description %}The engineering roadmap for SOLE ATELIER, with every status computed from the project's evidence register.{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/engineering.css">{% endblock %}
+{% block content %}
+{% set local = roadmap.summary.local %}
+{% set aws = roadmap.summary.aws %}
+{% set tt = roadmap.task_totals %}
+<section class="eng-head wrap">
+  <p class="eyebrow">Behind the build</p>
+  <h1>From the first route to a verified AWS build</h1>
+  <p class="lead">Six phases. The application and its tests are done locally; the AWS side is designed but not built. Each status below is computed from the project's evidence register and decision log, not typed in by hand, so the page cannot claim more than the files do.</p>
+</section>
+
+<section class="wrap" aria-labelledby="progress-title">
+  <h2 id="progress-title" class="sr-only">Where things stand</h2>
+  <div class="progress-grid">
+    <div class="claims">
+      <h3>Local build</h3>
+      <p class="claims-count"><strong>{{ local.verified }} of {{ local.total }}</strong> claims verified</p>
+      <ul class="cells" aria-label="{{ local.verified }} of {{ local.total }} local claims verified">
+        {% for c in roadmap.summary.claims if c.scope == 'local' %}<li class="cell cell-{{ c.status }}" title="{{ c.id }}: {{ c.claim }} ({{ c.status|replace('_', ' ') }})"><span class="sr-only">{{ c.id }} {{ c.status|replace('_', ' ') }}</span></li>{% endfor %}
+      </ul>
+      <p class="claims-note">Tests, browser checks, scans and screenshots, run on SQLite.</p>
+    </div>
+    <div class="claims">
+      <h3>AWS build</h3>
+      <p class="claims-count"><strong>{{ aws.verified }} of {{ aws.total }}</strong> claims verified</p>
+      <ul class="cells" aria-label="{{ aws.verified }} of {{ aws.total }} AWS claims verified">
+        {% for c in roadmap.summary.claims if c.scope == 'aws' %}<li class="cell cell-{{ c.status }}" title="{{ c.id }}: {{ c.claim }} ({{ c.status|replace('_', ' ') }})"><span class="sr-only">{{ c.id }} {{ c.status|replace('_', ' ') }}</span></li>{% endfor %}
+      </ul>
+      <p class="claims-note">Networking, security groups, RDS, compute, load balancer, teardown.</p>
+    </div>
+    <div class="claims-key">
+      <h3>One cell is one claim</h3>
+      <ul class="key">
+        <li><span class="cell cell-verified"></span> Verified: evidence file and an observed result</li>
+        <li><span class="cell cell-implemented"></span> Implemented: exists, configuration shown</li>
+        <li><span class="cell cell-planned"></span> Planned: no evidence yet</li>
+        <li><span class="cell cell-blocked"></span> Blocked or failed</li>
+      </ul>
+      <p class="claims-note">Tasks: {{ tt.completed }} completed, {{ tt.in_progress }} in progress, {{ tt.planned }} planned, {{ tt.blocked }} blocked, of {{ tt.all }}.
+      {% if roadmap.summary.openDecisions %}Open decisions waiting on the owner: {% for d in roadmap.summary.openDecisions %}<code>{{ d }}</code>{% if not loop.last %}, {% endif %}{% endfor %}.{% endif %}</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap roadmap" aria-labelledby="phases-title">
+  <h2 id="phases-title" class="sr-only">Phases</h2>
+  <nav aria-label="Roadmap phases">
+    <ol class="phase-track">
+      {% for p in roadmap.phases %}
+      <li class="phase-item state-{{ p.status }}">
+        <a class="phase-node" href="#phase-{{ p.number }}" data-phase="{{ p.number }}">
+          <span class="node-badge" aria-hidden="true">{{ p.number }}</span>
+          <span class="node-title">{{ p.short }}</span>
+          <span class="node-status">{{ p.statusLabel }}</span>
+        </a>
+        {% if not loop.last %}<span class="phase-link link-{{ p.status }}" aria-hidden="true"></span>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </nav>
+
+  <div class="phase-panels">
+    {% for p in roadmap.phases %}
+    <article class="phase-panel state-{{ p.status }}" id="phase-{{ p.number }}" data-phase="{{ p.number }}" aria-labelledby="phase-{{ p.number }}-title">
+      <header class="panel-head">
+        <div>
+          <p class="eyebrow">Phase {{ p.number }}</p>
+          <h2 id="phase-{{ p.number }}-title">{{ p.title }}</h2>
+        </div>
+        <span class="chip chip-{{ p.status }}">{{ p.statusLabel }}</span>
+      </header>
+      <p class="panel-summary">{{ p.summary }}</p>
+      <p class="panel-objective"><span class="k">Objective</span> {{ p.objective }}</p>
+
+      <h3>Tasks</h3>
+      <ul class="task-list">
+        {% for t in p.tasks %}
+        <li class="task state-{{ t.status }}">
+          <span class="chip chip-{{ t.status }}">{{ t.statusLabel }}</span>
+          <div>
+            <p class="task-text">{{ t.text }}</p>
+            <p class="task-why">{{ t.why }}{% if t.detail %}. {{ t.detail }}{% endif %}</p>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <h3>Validation criteria</h3>
+      <ul class="plain">{% for v in p.validation %}<li>{{ v }}</li>{% endfor %}</ul>
+
+      {% if p.notInScope %}
+      <h3>Not in scope</h3>
+      <ul class="plain muted">{% for n in p.notInScope %}<li>{{ n }}</li>{% endfor %}</ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap eng-section">
+  <details class="how">
+    <summary>How these statuses are computed</summary>
+    <ul class="plain">
+      <li><strong>Completed</strong> means every claim a task depends on is Verified in the evidence register, or the document it promises exists.</li>
+      <li><strong>In progress</strong> means some evidence exists, or the code is written but the AWS evidence is still missing.</li>
+      <li><strong>Planned</strong> means nothing exists yet.</li>
+      <li><strong>Blocked</strong> means the task needs a decision that is still open in the decision log, or a claim has failed.</li>
+      <li>A phase is Blocked if any task is, Completed if all are, In progress if any has started, and Planned otherwise.</li>
+      <li>The data is generated by <code>tools/build-roadmap.mjs</code> from <code>docs/project/</code>. <code>tools/check-docs.mjs</code> fails if the page data is stale.</li>
+    </ul>
+  </details>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/roadmap.js" defer></script>{% endblock %}

@@ -1,0 +1,5 @@
+# E-021 dependency vulnerability scan, run by Claude on 2026-10-15 14:59 UTC
+$ pip-audit -r requirements.txt   (checks pinned direct dependencies and their resolved transitive dependencies against the public advisory database)
+No known vulnerabilities found
+
+# Limits: advisory data changes daily; re-run before publishing. No lockfile exists, so transitive versions are resolved at install time.

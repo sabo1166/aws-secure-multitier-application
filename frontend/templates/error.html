@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <p class="eyebrow">Error {{ status }}</p>
+  <h1>{% if status == 404 %}Page not found{% else %}Something went wrong{% endif %}</h1>
+  <p class="muted">{{ message }}</p>
+  <p><a class="btn btn-primary" href="/">Back to the home page</a> <a class="btn btn-ghost" href="/shop">Browse the collection</a></p>
+</section>
+{% endblock %}

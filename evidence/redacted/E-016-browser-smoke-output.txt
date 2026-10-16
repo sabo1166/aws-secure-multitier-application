@@ -1,0 +1,41 @@
+# E-016 real-browser smoke test (Edge, DevTools Protocol), run by Claude on 2026-10-15 15:19 UTC against the backend/ + frontend/ layout
+# command: node tools/browser-smoke.mjs http://127.0.0.1:8127 <scratch-dir>   (server: uvicorn backend.main:create_app --factory, fresh SQLite database, local only)
+# This run replaces the earlier one; it adds four static-asset checks (CSS, JS, fonts, images load from frontend/static).
+
+PASS  PDP loads with product name
+PASS  Adding without a size shows a message and adds nothing
+PASS  Selecting a size updates stock status
+PASS  Quantity stepper increments
+PASS  Add to bag updates the live bag count to 2
+PASS  Cart shows the line and server-computed total
+PASS  Cart + button changes quantity to 3 and total to $735.00
+PASS  Demo banner is visible on checkout
+PASS  No card fields exist on checkout
+PASS  Empty checkout shows field errors from the server
+PASS  Invalid email is rejected inline
+PASS  Valid checkout redirects to a confirmation page
+PASS  Confirmation states demo / no payment
+PASS  Bag is empty again after the order
+PASS  Sort select reloads the list sorted high to low
+PASS  Empty search shows the empty state
+PASS  Static assets load on /: CSS, JS, fonts, images
+PASS  Static assets load on /shop: CSS, JS, fonts, images
+PASS  Static assets load on /products/noir-01: CSS, JS, fonts, images
+PASS  Static assets load on /collections: CSS, JS, fonts, images
+PASS  A11y structure /: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /shop: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /products/noir-01: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /collections: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /journal: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /about: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /policies: one h1, lang, alt text, labelled controls, <main>
+PASS  A11y structure /cart: one h1, lang, alt text, labelled controls, <main>
+PASS  Keyboard: first Tab focuses the skip link
+PASS  Keyboard: 12 Tab presses reach 12 distinct visible controls
+PASS  Mobile: nav hidden until the menu button is used
+PASS  Mobile: menu opens and aria-expanded is true
+PASS  Mobile: no horizontal overflow on home
+PASS  Mobile: no horizontal overflow on shop
+PASS  Mobile: no horizontal overflow on product page
+
+35/35 checks passed

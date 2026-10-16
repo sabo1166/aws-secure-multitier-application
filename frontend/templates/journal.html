@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}The Journal · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <p class="eyebrow">The Journal</p>
+  <h1>Notes on design and taste</h1>
+  <p class="muted">Sample editorial written for this demonstration site.</p>
+</section>
+<section class="wrap prose-list">
+  {% for title, dek, body in entries %}
+  <article class="entry">
+    <p class="eyebrow">Entry {{ '%02d'|format(loop.index) }}</p>
+    <h2>{{ title }}</h2>
+    <p class="dek">{{ dek }}</p>
+    <p>{{ body }}</p>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

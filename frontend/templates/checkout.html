@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Demo checkout · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <ol class="steps" aria-label="Progress"><li class="done">Bag</li><li aria-current="step">Details</li><li>Confirmation</li></ol>
+  <h1>Demo checkout</h1>
+</section>
+
+<section class="wrap">
+  <div class="demo-banner" role="note"><strong>Demonstration only.</strong> This records a demo order. No payment is taken, no card details are requested, and nothing will be shipped.</div>
+
+  {% if cart.is_empty %}
+    <div class="empty"><h2>Your bag is empty</h2><a class="btn btn-primary" href="/shop">Continue shopping</a></div>
+  {% elif cart.has_issues %}
+    <div class="empty"><h2>Some items need your attention</h2><p class="muted">Review your bag before checking out.</p><a class="btn btn-primary" href="/cart">Review bag</a></div>
+  {% else %}
+  <div class="cart-layout">
+    <form id="checkout-form" class="checkout-form" novalidate>
+      <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+      <fieldset>
+        <legend>Contact</legend>
+        <div class="field"><label for="c-name">Full name</label><input id="c-name" name="customer_name" autocomplete="name" required maxlength="120"><span class="err" data-error-for="customer_name"></span></div>
+        <div class="field"><label for="c-email">Email</label><input id="c-email" name="customer_email" type="email" autocomplete="email" required maxlength="254"><span class="err" data-error-for="customer_email"></span></div>
+      </fieldset>
+      <fieldset>
+        <legend>Shipping address</legend>
+        <div class="field"><label for="c-l1">Address line 1</label><input id="c-l1" name="shipping_line1" autocomplete="address-line1" required maxlength="160"><span class="err" data-error-for="shipping_line1"></span></div>
+        <div class="field"><label for="c-l2">Address line 2 <span class="muted">(optional)</span></label><input id="c-l2" name="shipping_line2" autocomplete="address-line2" maxlength="160"><span class="err" data-error-for="shipping_line2"></span></div>
+        <div class="field-row">
+          <div class="field"><label for="c-city">City</label><input id="c-city" name="shipping_city" autocomplete="address-level2" required maxlength="80"><span class="err" data-error-for="shipping_city"></span></div>
+          <div class="field"><label for="c-zip">Postal code</label><input id="c-zip" name="shipping_postal_code" autocomplete="postal-code" required maxlength="20"><span class="err" data-error-for="shipping_postal_code"></span></div>
+        </div>
+        <div class="field"><label for="c-country">Country</label><input id="c-country" name="shipping_country" autocomplete="country-name" required maxlength="60"><span class="err" data-error-for="shipping_country"></span></div>
+      </fieldset>
+      <p class="muted small">We store the details above with the demo order, nothing more. Do not enter real personal data you are not comfortable storing in a demonstration database.</p>
+      <p class="form-error" id="checkout-error" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit" id="place-order">Place demo order</button>
+    </form>
+
+    <aside class="summary" aria-labelledby="sum-title">
+      <h2 id="sum-title">Your order</h2>
+      <ul class="mini-lines">
+        {% for l in cart.lines %}
+        <li><img src="{{ l.product.image }}" alt="" width="64" height="64"><div><strong>{{ l.product.name }}</strong><span class="meta">US {{ l.size }} &middot; Qty {{ l.quantity }}</span></div><span>{{ l.line_total|money }}</span></li>
+        {% endfor %}
+      </ul>
+      <dl>
+        <dt>Subtotal</dt><dd>{{ cart.subtotal|money }}</dd>
+        <dt>Shipping</dt><dd>Free (demo)</dd>
+        <dt class="total">Total</dt><dd class="total">{{ cart.subtotal|money }}</dd>
+      </dl>
+    </aside>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Your bag · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <ol class="steps" aria-label="Progress"><li aria-current="step">Bag</li><li>Details</li><li>Confirmation</li></ol>
+  <h1>Shopping bag</h1>
+</section>
+
+<section class="wrap">
+{% if cart.is_empty %}
+  <div class="empty">
+    <h2>Your bag is empty</h2>
+    <p class="muted">When you add a pair, it will wait for you here.</p>
+    <a class="btn btn-primary" href="/shop">Continue shopping</a>
+  </div>
+{% else %}
+  <div class="cart-layout">
+    <ul class="cart-list" aria-label="Items in your bag">
+      {% for l in cart.lines %}
+      <li class="cart-line {{ 'has-issue' if l.issue }}" data-item-id="{{ l.item_id }}">
+        {% if l.product %}<a href="/products/{{ l.product.slug }}"><img src="{{ l.product.image }}" alt="" width="120" height="120"></a>{% endif %}
+        <div class="cart-info">
+          <h2>{% if l.product %}<a href="/products/{{ l.product.slug }}">{{ l.product.name }}</a>{% else %}Unavailable item{% endif %}</h2>
+          <p class="meta">{% if l.product %}{{ l.product.color }} &middot; {% endif %}US {{ l.size }}</p>
+          {% if l.issue %}<p class="issue" role="alert">{{ l.issue }}. Update or remove this item to continue.</p>{% endif %}
+          <div class="cart-controls">
+            <div class="qty" role="group" aria-label="Quantity for {{ l.product.name if l.product else 'item' }}">
+              <button type="button" data-cart-step="-1" aria-label="Decrease quantity" {% if l.quantity <= 1 %}disabled{% endif %}>&minus;</button>
+              <output aria-live="polite">{{ l.quantity }}</output>
+              <button type="button" data-cart-step="1" aria-label="Increase quantity" {% if not l.product or l.quantity >= 5 or l.quantity >= l.available %}disabled{% endif %}>+</button>
+            </div>
+            <button class="link-quiet" type="button" data-cart-remove>Remove</button>
+          </div>
+        </div>
+        <p class="line-price">{% if l.issue %}&mdash;{% else %}{{ l.line_total|money }}{% endif %}</p>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <aside class="summary" aria-labelledby="sum-title">
+      <h2 id="sum-title">Order summary</h2>
+      <dl>
+        <dt>Subtotal</dt><dd>{{ cart.subtotal|money }}</dd>
+        <dt>Shipping</dt><dd>Free (demo)</dd>
+        <dt class="total">Total</dt><dd class="total">{{ cart.subtotal|money }}</dd>
+      </dl>
+      {% if cart.has_issues %}
+        <button class="btn btn-primary btn-block" type="button" disabled>Resolve items to checkout</button>
+      {% else %}
+        <a class="btn btn-primary btn-block" href="/checkout">Proceed to demo checkout</a>
+      {% endif %}
+      <a class="link-quiet center" href="/shop">Continue shopping</a>
+      <p class="muted small">Totals are recalculated by the server from current prices. Your bag is stored in a signed browser cookie, so it is per browser and clears when cookies are cleared.</p>
+    </aside>
+  </div>
+{% endif %}
+  <p class="form-error" id="cart-error" role="alert"></p>
+</section>
+{% endblock %}

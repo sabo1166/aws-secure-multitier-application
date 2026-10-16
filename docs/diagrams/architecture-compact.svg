@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="700" height="320" role="img" aria-labelledby="t d">
+  <title id="t">SOLE ATELIER target architecture, compact view (design, not deployed)</title>
+  <desc id="d">Browser to an internet-facing load balancer in public subnets, then FastAPI instances in private app subnets across two AZs, then RDS MySQL in private db subnets. A NAT gateway gives the app outbound HTTPS to Secrets Manager and Session Manager.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1f2933"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #1f2933; font-size: 11.5px; }
+      .b { font-weight: 600; font-size: 12.5px; } .s { fill: #4b5563; font-size: 10.5px; }
+      .box { fill: #fff; stroke: #1f2933; stroke-width: 1.5; }
+      .pub { fill: #eef5ff; stroke: #4a7fd4; } .app { fill: #f1f8ee; stroke: #5a9a3c; } .db { fill: #fff4e8; stroke: #d98324; }
+      .ln { stroke: #1f2933; stroke-width: 1.8; fill: none; } .dl { stroke: #6b7280; stroke-width: 1.6; fill: none; stroke-dasharray: 6 4; }
+    </style>
+  </defs>
+  <rect width="700" height="320" fill="#fff"/>
+  <text x="10" y="18" class="b" style="fill:#b45309">DESIGN ONLY. Nothing here is deployed.</text>
+
+  <rect x="112" y="34" width="580" height="272" rx="10" fill="none" stroke="#248814" stroke-width="1.8"/>
+  <text x="122" y="52" class="s" style="fill:#248814">VPC 10.0.0.0/16, two Availability Zones</text>
+
+  <rect class="box" x="8" y="108" width="84" height="56" rx="7"/>
+  <text x="50" y="132" text-anchor="middle" class="b">Browser</text><text x="50" y="148" text-anchor="middle" class="s">HTTP</text>
+
+  <rect class="box pub" x="128" y="82" width="128" height="108" rx="8"/>
+  <text x="192" y="104" text-anchor="middle" class="b">Load balancer</text>
+  <text x="192" y="121" text-anchor="middle" class="s">internet-facing ALB</text>
+  <text x="192" y="136" text-anchor="middle" class="s">public subnets a + b</text>
+  <text x="192" y="158" text-anchor="middle" class="s">alb-sg: 80 from internet</text>
+
+  <rect class="box app" x="300" y="82" width="150" height="108" rx="8"/>
+  <text x="375" y="104" text-anchor="middle" class="b">FastAPI on EC2</text>
+  <text x="375" y="121" text-anchor="middle" class="s">one per AZ, no public IP</text>
+  <text x="375" y="136" text-anchor="middle" class="s">private app subnets a + b</text>
+  <text x="375" y="158" text-anchor="middle" class="s">app-sg: 8080 from alb-sg</text>
+  <text x="375" y="174" text-anchor="middle" class="s">no SSH, IMDSv2 only</text>
+
+  <rect class="box db" x="494" y="82" width="188" height="108" rx="8"/>
+  <text x="588" y="104" text-anchor="middle" class="b">RDS for MySQL 8.4</text>
+  <text x="588" y="121" text-anchor="middle" class="s">single instance, encrypted</text>
+  <text x="588" y="136" text-anchor="middle" class="s">private db subnets a + b</text>
+  <text x="588" y="158" text-anchor="middle" class="s">db-sg: 3306 from app-sg</text>
+  <text x="588" y="174" text-anchor="middle" class="s">not publicly accessible</text>
+
+  <path class="ln" d="M92,136 L126,136" marker-end="url(#a)"/>
+  <path class="ln" d="M256,136 L298,136" marker-end="url(#a)"/><text x="277" y="128" text-anchor="middle" class="s">8080</text>
+  <path class="ln" d="M450,136 L492,136" marker-end="url(#a)"/><text x="471" y="128" text-anchor="middle" class="s">3306</text>
+
+  <rect class="box" x="300" y="236" width="150" height="46" rx="8"/>
+  <text x="375" y="256" text-anchor="middle" class="b">NAT gateway (one)</text><text x="375" y="271" text-anchor="middle" class="s">in public-a, 443 out</text>
+  <path class="dl" d="M375,190 L375,234" marker-end="url(#g)"/>
+  <rect class="box" x="494" y="236" width="188" height="46" rx="8"/>
+  <text x="588" y="256" text-anchor="middle" class="b">Secrets Manager</text><text x="588" y="271" text-anchor="middle" class="s">+ Session Manager (via HTTPS)</text>
+  <path class="dl" d="M450,259 L492,259" marker-end="url(#g)"/>
+  <text x="128" y="262" class="s">Solid: request path.</text><text x="128" y="277" class="s">Dashed: outbound HTTPS.</text>
+  <text x="128" y="296" class="s">Single NAT and single-AZ DB: AZ a failure likely means an outage.</text>
+</svg>

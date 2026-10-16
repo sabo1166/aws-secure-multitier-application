@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOLE ATELIER: Technical Case Study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="notebook.css">
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<main class="page" aria-label="Case study page 1">
+  <p class="kicker">Technical case study &middot; page 1 of 4</p>
+  <h1 class="title">SOLE ATELIER: designing a secure three-tier application for AWS</h1>
+  <p class="sub">A fictional sneaker boutique used as a realistic workload for a hand-built AWS architecture.</p>
+  <hr class="rule">
+
+  <div class="chips">
+    <div class="chip"><b>Implemented</b><span>Storefront, API, tests, documentation</span></div>
+    <div class="chip"><b>Tested (local only)</b><span>91 tests, 35 browser checks, SQLite</span></div>
+    <div class="chip"><b>Deployed</b><span>Nothing. No AWS resource exists</span></div>
+    <div class="chip plan"><b>Planned</b><span>Manual AWS build with evidence</span></div>
+  </div>
+
+  <h2>Summary</h2>
+  <p>The application works locally and its server enforces prices, stock and input validation, proven by tests that fail when the code is deliberately broken. The AWS architecture (private subnets, security-group chaining, a least-privilege database user, no SSH, secrets outside code) is designed, documented and ready to build by hand, but <b>none of it has been built or verified</b>. This case study reports both halves separately and does not blur them.</p>
+
+  <h2>The problem</h2>
+  <p>Many &ldquo;three-tier on AWS&rdquo; demos stop at a default page behind a load balancer. That shows the parts can be connected, not that the design is safe or that an application on top behaves correctly. A real shop with per-size stock, a cart and orders raises real questions: how does the app reach a private database, who can read its password, what happens when the database is down, and what does a healthy target group actually prove?</p>
+
+  <h2>Product concept</h2>
+  <p>SOLE ATELIER presents a short, curated catalogue of six fictional sneakers with a dark, editorial storefront. Customers can browse, search, filter and sort, choose a size, manage a bag and place a <b>demonstration</b> order. No payment is taken and no card data is collected. Products, prices, stock and the &ldquo;New Arrival&rdquo; and &ldquo;Limited Release&rdquo; labels are demo data; product images are original illustrations, not photographs.</p>
+
+  <div class="two">
+    <div>
+      <h2>Goals</h2>
+      <ul>
+        <li>Public, application and database tiers across two Availability Zones</li>
+        <li>Access limited by routing, security groups and IAM, not by hope</li>
+        <li>Secrets out of code; app runs as a low-privilege database user</li>
+        <li>Behaviour proven by tests and recorded evidence</li>
+        <li>Cost known, bounded and torn down in order</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Non-goals (deliberate)</h2>
+      <ul>
+        <li>Real payments, accounts or fulfilment</li>
+        <li>HTTPS, custom domain, WAF, CDN</li>
+        <li>Multi-AZ database, NAT per AZ</li>
+        <li>CI/CD, infrastructure as code, containers</li>
+        <li>Claims of production readiness</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">Everything on AWS is built <b>manually in the Console</b>. Automation comes after each resource can be explained.</div>
+
+  <div class="foot"><span>Source: this repository only. Nothing here is a claimed deployment or metric.</span><span>1 / 4</span></div>
+</main>
+
+<!-- PAGE 2 -->
+<main class="page" aria-label="Case study page 2">
+  <p class="kicker">Technical case study &middot; page 2 of 4</p>
+  <h1 class="title">Architecture and decisions</h1>
+  <hr class="rule">
+
+  <figure class="figure"><img src="../diagrams/architecture-compact.svg" alt="Target AWS architecture, compact view"><figcaption>Target design. <b>Not deployed.</b> The full-size diagram with CIDRs and route detail is architecture.png in the repository root.</figcaption></figure>
+
+  <h2>Request flow</h2>
+  <ol style="font-size:11px;padding-left:18px">
+    <li>The browser sends HTTP 80 to an internet-facing Application Load Balancer in two public subnets (<code>alb-sg</code>).</li>
+    <li>The ALB forwards to FastAPI on EC2 in private subnets on 8080; <code>app-sg</code> accepts only <code>alb-sg</code>. No public IP, no SSH.</li>
+    <li>The app connects to RDS MySQL on 3306; <code>db-sg</code> accepts only <code>app-sg</code>. The database is not publicly accessible and its subnets have no internet route.</li>
+    <li>At startup the app reads two secrets with its IAM role, through one NAT gateway on 443.</li>
+    <li>The ALB health check calls <code>/health</code>, which does not query the database; <code>/health/ready</code> does.</li>
+  </ol>
+
+  <h2>Key decisions and trade-offs</h2>
+  <table class="t">
+    <tr><th style="width:22%">Decision</th><th>Why</th><th style="width:34%">Trade-off accepted</th></tr>
+    <tr><td>FastAPI + Jinja2 + SQLAlchemy</td><td>Smallest stack with a real frontend, API and relational model; no build system</td><td>Server-rendered pages with light JavaScript</td></tr>
+    <tr><td>RDS for MySQL 8.4, single AZ</td><td>Managed backups, patching, encryption; orders and stock are relational</td><td>DB AZ failure means downtime (D-007)</td></tr>
+    <tr><td>Security groups reference groups</td><td>Access follows the tier, not IP addresses</td><td>Restricted egress can cause confusing failures</td></tr>
+    <tr><td>Dedicated <code>sole_app</code> DB user</td><td>DML only: injection cannot drop tables; admin used once for schema</td><td>Password not rotated; broad inside its schema</td></tr>
+    <tr><td>Secrets Manager + instance role</td><td>No secret in code, user data or screenshots</td><td>Recurring secret cost; startup depends on it</td></tr>
+    <tr><td>One NAT gateway, created late</td><td>Lowest cost that gives private egress</td><td>Single point of failure; bills hourly (D-006)</td></tr>
+    <tr><td>Liveness vs readiness checks</td><td>A database blip must not empty the load balancer</td><td>Instances can be &ldquo;healthy&rdquo; and return 503 (D-013)</td></tr>
+    <tr><td>HTTP only</td><td>No domain available for a certificate</td><td>Unencrypted to the ALB; cookie not <code>Secure</code> (D-009)</td></tr>
+  </table>
+  <p style="font-size:10.5px;color:#566170">Full records with alternatives considered: docs/project/DECISIONS.md (D-001 to D-018).</p>
+
+  <div class="foot"><span>Source: docs/architecture.md, docs/project/DECISIONS.md.</span><span>2 / 4</span></div>
+</main>
+
+<!-- PAGE 3 -->
+<main class="page" aria-label="Case study page 3">
+  <p class="kicker">Technical case study &middot; page 3 of 4</p>
+  <h1 class="title">Application design and what is enforced</h1>
+  <hr class="rule">
+
+  <div class="two">
+    <figure class="figure" style="margin:0"><img class="shot" src="../../screenshots/06-application/01-homepage-desktop.png" alt="Local homepage on SQLite"><figcaption>Home page. Local, SQLite, fictional data, illustrated images.</figcaption></figure>
+    <figure class="figure" style="margin:0"><img class="shot" src="../../screenshots/06-application/04-cart-desktop.png" alt="Local shopping bag with server-computed total"><figcaption>Bag: totals recomputed by the server from the database.</figcaption></figure>
+  </div>
+
+  <h2>Cart and order workflow</h2>
+  <p>The cart lives in a signed session cookie as <b>product id, size and quantity only</b>. Names, prices and stock are re-read from the database on every request. Placing an order runs in one transaction: each line reserves stock with <code>UPDATE ... WHERE stock &gt;= qty</code>, the order and its lines are inserted with name and price snapshots, and a client-supplied idempotency key makes a double submit return the original order. If any line cannot be reserved, every line rolls back and the customer sees a 409.</p>
+
+  <h2>Controls and how each is tested</h2>
+  <table class="t">
+    <tr><th style="width:30%">Control</th><th>Mechanism</th><th style="width:30%">Evidence</th></tr>
+    <tr><td>Server-side pricing</td><td>Extra fields refused; reprice on read; snapshot at order</td><td>Tests send <code>price</code>, change DB price</td></tr>
+    <tr><td>No overselling</td><td>Atomic conditional update in one transaction</td><td>Race and two-buyer tests; mutation caught</td></tr>
+    <tr><td>Input validation</td><td>Pydantic, <code>extra=forbid</code>, patterns, length limits</td><td>10 invalid-field cases, size and quantity cases</td></tr>
+    <tr><td>SQL injection / XSS</td><td>Bound parameters, escaped wildcards, autoescape, strict CSP</td><td>Injection and <code>&lt;script&gt;</code> strings tested</td></tr>
+    <tr><td>CSRF</td><td>Session token echoed in a header, constant-time compare</td><td>Missing, wrong and cross-session tokens rejected</td></tr>
+    <tr><td>Safe errors and logs</td><td>Generic messages; log lines carry ids, not customer data</td><td>Tests assert no host, user, input or PII leaks</td></tr>
+    <tr><td>No payment data</td><td>No card fields; unexpected fields rejected</td><td>Browser check and test</td></tr>
+  </table>
+
+  <h2>Data model</h2>
+  <p style="font-size:11px"><code>products</code> (price NUMERIC(10,2), active flag, badge) &middot; <code>product_sizes</code> (stock per size, never negative) &middot; <code>orders</code> (unguessable reference, unique idempotency key, totals, address, status <code>demo_pending</code>) &middot; <code>order_items</code> (name, size, quantity, unit price and line total snapshots).</p>
+
+  <div class="foot"><span>Source: backend/, frontend/, tests/, docs/security.md. Screenshots are local runs, not AWS.</span><span>3 / 4</span></div>
+</main>
+
+<!-- PAGE 4 -->
+<main class="page" aria-label="Case study page 4">
+  <p class="kicker">Technical case study &middot; page 4 of 4</p>
+  <h1 class="title">Verification, problems found, and limits</h1>
+  <hr class="rule">
+
+  <h2>What was run (local, 2026-10-15)</h2>
+  <table class="t">
+    <tr><th>Check</th><th>Result</th><th style="width:15%">Evidence</th></tr>
+    <tr><td>Automated tests (SQLite, temp DB per test)</td><td><span class="tag v">91 passed</span></td><td>E-015</td></tr>
+    <tr><td>Six deliberate bugs injected one at a time</td><td><span class="tag v">6 of 6 caught</span></td><td>E-015</td></tr>
+    <tr><td>Real-browser UI test (Edge): flows, keyboard, structure, 390 px overflow</td><td><span class="tag v">35 of 35</span></td><td>E-016</td></tr>
+    <tr><td>Colour contrast from the stylesheet</td><td><span class="tag v">12 of 12 AA</span></td><td>E-020</td></tr>
+    <tr><td>Dependency scan (<code>pip-audit</code>) and clean-room install</td><td><span class="tag v">none known; 91 pass</span></td><td>QUALITY_REVIEW</td></tr>
+    <tr><td>MySQL/RDS, real concurrency, other browsers, screen readers, <b>anything on AWS</b></td><td><span class="tag u">Not tested</span></td><td>n/a</td></tr>
+  </table>
+
+  <h2>Problems found and fixed</h2>
+  <ul style="font-size:11px">
+    <li>An <code>app = create_app()</code> at import created a database file during tests. Fixed with an application factory.</li>
+    <li>A headless-browser &ldquo;mobile&rdquo; screenshot was a cropped wider layout. Fixed with real device emulation and an overflow check.</li>
+    <li>A mutation check showed the oversell path is covered by only one test class; recorded as a weakness.</li>
+    <li>The first design had the app using the database admin account. Replaced by a dedicated low-privilege user (D-008).</li>
+    <li>Review of my own RDS guide found the schema command would fail for the Session Manager user; corrected to run as the service account (still untested).</li>
+  </ul>
+
+  <h2>Demo-only, and what changes for a real shop</h2>
+  <p style="font-size:11px">Demo only: checkout without payment, stock reservations that never expire, a browser-held cart, no accounts, no migrations tool. Before real use: HTTPS and a domain, WAF and rate limiting, Multi-AZ RDS and a NAT per AZ, server-side carts and accounts, a payment provider so card data never touches the servers, Alembic migrations, rotated credentials, log shipping and alarms, then infrastructure as code.</p>
+
+  <h2>Evidence matrix</h2>
+  <table class="t">
+    <tr><th>Claim</th><th style="width:20%">Status</th><th style="width:34%">Missing</th></tr>
+    <tr><td>Application behaves as designed (local)</td><td><span class="tag v">Verified</span></td><td>Your own re-run (E-019)</td></tr>
+    <tr><td>Network isolation, SG chain, private RDS (E-003 to E-007)</td><td><span class="tag p">Planned</span></td><td>All AWS screenshots and tests</td></tr>
+    <tr><td>End-to-end through ALB and RDS (E-008, E-009)</td><td><span class="tag p">Planned</span></td><td>Deployment and test output</td></tr>
+    <tr><td>Self-healing and teardown (E-012, E-014)</td><td><span class="tag p">Planned</span></td><td>Tests and billing check</td></tr>
+  </table>
+
+  <div class="callout ok"><b>Release assessment:</b> READY WITH DOCUMENTED LIMITATIONS, as an honest in-progress project: a tested application plus a documented AWS design. It does <b>not</b> yet demonstrate hands-on AWS skill; that needs the evidence in the plan. Full gate review: docs/project/QUALITY_REVIEW.md.</div>
+
+  <div class="foot"><span>Source: evidence/redacted/, docs/project/ (register, quality review).</span><span>4 / 4</span></div>
+</main>
+</body>
+</html>

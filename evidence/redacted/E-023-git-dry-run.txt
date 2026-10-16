@@ -1,0 +1,12 @@
+# E-023 repository hygiene dry-run, run by Claude on 2026-10-15 15:24 UTC in a THROWAWAY COPY of the backend/ + frontend/ layout (the real folder is not a Git repository)
+# Planted: .env, planted.db, planted.pem, evidence/raw/planted-screenshot.png
+files that would be committed: 145
+planted or private files tracked: 0  (expected 0)
+ignored:
+!! .env
+!! .venv/
+!! evidence/raw/planted-screenshot.png
+!! planted.db
+!! planted.pem
+automation files tracked (expected 0): 0
+top-level folders that would be committed: .env.example .gitattributes .gitignore architecture.png backend CLAUDE.md docs evidence frontend pytest.ini README.md requirements.txt requirements-dev.txt screenshots scripts tests tools 

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Demo order recorded · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <ol class="steps" aria-label="Progress"><li class="done">Bag</li><li class="done">Details</li><li aria-current="step">Confirmation</li></ol>
+  <h1>Demo order recorded</h1>
+  <p class="lede dark">Reference <strong class="ref">{{ order.public_id }}</strong></p>
+</section>
+<section class="wrap">
+  <div class="demo-banner" role="note"><strong>This was a demonstration.</strong> Status: <em>{{ order.status|replace('_', ' ') }}</em>. No payment was processed, no email was sent and nothing will be shipped.</div>
+  <div class="cart-layout">
+    <div>
+      <h2 class="h3">Items</h2>
+      <table class="table">
+        <thead><tr><th scope="col">Item</th><th scope="col">Size</th><th scope="col">Qty</th><th scope="col" class="num">Price</th><th scope="col" class="num">Total</th></tr></thead>
+        <tbody>
+          {% for i in order.items %}
+          <tr><th scope="row">{{ i.product_name }}</th><td>US {{ i.size }}</td><td>{{ i.quantity }}</td><td class="num">{{ i.unit_price|money }}</td><td class="num">{{ i.line_total|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <aside class="summary">
+      <h2>Summary</h2>
+      <dl><dt>Subtotal</dt><dd>{{ order.subtotal|money }}</dd><dt>Shipping</dt><dd>Free (demo)</dd><dt class="total">Total</dt><dd class="total">{{ order.total|money }}</dd></dl>
+      <h3 class="h3">Ship to (demo)</h3>
+      <address>{{ order.customer_name }}<br>{{ order.shipping_line1 }}<br>{% if order.shipping_line2 %}{{ order.shipping_line2 }}<br>{% endif %}{{ order.shipping_city }} {{ order.shipping_postal_code }}<br>{{ order.shipping_country }}</address>
+      <a class="btn btn-primary btn-block" href="/shop">Continue shopping</a>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+# E-022 clean-room install and test, run by Claude on 2026-10-15 15:24 UTC on the backend/ + frontend/ layout
+# A copy of the repository without .venv, evidence/raw or caches; new virtual environment; Python 3.13.14
+$ pip install -r requirements-dev.txt
+$ pip list (selected)
+boto3             1.43.67
+fastapi           0.143.2
+Jinja2            3.1.6
+pydantic          2.14.1
+PyMySQL           1.2.3
+pytest            9.1.1
+SQLAlchemy        2.1.4
+starlette         1.8.0
+uvicorn           0.54.0
+$ pytest -q
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+91 passed, 1 warning in 11.25s
+
+$ node tools/check-docs.mjs   (in the clean copy)
+  automation/IaC file scan: done
+Not performed: live-Console accuracy of menu paths, AWS-side verification, human review. (SVG diagrams are checked by viewing, not by this tool.)
+
+OK: all documentation checks passed.

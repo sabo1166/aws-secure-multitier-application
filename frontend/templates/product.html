@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} · {{ store_name }}{% endblock %}
+{% block description %}{{ product.description }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/shop">Shop</a> <span aria-hidden="true">/</span> <a href="/shop?category={{ product.category }}">{{ collections[product.category] }}</a> <span aria-hidden="true">/</span> <span aria-current="page">{{ product.name }}</span></nav>
+
+  <div class="pdp">
+    <div class="pdp-media">
+      <img src="{{ product.image }}" alt="{{ product.name }} in {{ product.color }}: original illustration of a {{ product.silhouette|lower }} sneaker" width="1000" height="1000">
+      {% if product.badge and product.in_stock %}<span class="badge">{{ product.badge }}</span>{% endif %}
+    </div>
+
+    <div class="pdp-info">
+      <p class="eyebrow">{{ collections[product.category] }}</p>
+      <h1>{{ product.name }}</h1>
+      <p class="pdp-price">{{ product.price|money }}</p>
+      <p class="meta">{{ product.color }}</p>
+      <p class="pdp-desc">{{ product.description }}</p>
+
+      <form id="add-form" data-product-id="{{ product.id }}" novalidate>
+        <fieldset class="sizes">
+          <legend>Size (US)</legend>
+          <div class="size-grid">
+            {% for s in product.sizes %}
+              <div class="size-opt">
+                <input type="radio" name="size" id="size-{{ s.size }}" value="{{ s.size }}" data-stock="{{ s.stock }}" {% if s.stock == 0 %}disabled{% endif %}>
+                <label for="size-{{ s.size }}" {% if s.stock == 0 %}title="Sold out"{% endif %}>{{ s.size }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <p class="stock-status {{ 'in' if product.in_stock else 'out' }}" id="stock-status" aria-live="polite" data-total="{{ product.total_stock }}">
+          {% if product.in_stock %}In stock. Select a size to see availability.{% else %}Sold out.{% endif %}
+        </p>
+
+        {% if product.in_stock %}
+        <div class="buy-row">
+          <div class="qty" role="group" aria-label="Quantity">
+            <button type="button" data-qty-step="-1" aria-label="Decrease quantity">&minus;</button>
+            <input id="qty" name="quantity" type="number" inputmode="numeric" min="1" max="5" value="1" aria-label="Quantity">
+            <button type="button" data-qty-step="1" aria-label="Increase quantity">+</button>
+          </div>
+          <button class="btn btn-primary btn-grow" type="submit">Add to bag</button>
+        </div>
+        {% else %}
+          <button class="btn btn-primary btn-grow" type="button" disabled>Sold out</button>
+        {% endif %}
+        <p class="form-error" id="add-error" role="alert"></p>
+      </form>
+
+      <div class="accordion">
+        <details open>
+          <summary>Product information</summary>
+          <dl class="spec">
+            <dt>Silhouette</dt><dd>{{ product.silhouette }}</dd>
+            <dt>Colourway</dt><dd>{{ product.color }}</dd>
+            <dt>Reference</dt><dd>{{ product.slug }}</dd>
+            <dt>Status</dt><dd>Fictional demonstration product</dd>
+          </dl>
+        </details>
+        <details><summary>Care</summary><p>{{ product.details }}</p></details>
+        <details><summary>Delivery &amp; demo checkout</summary><p>Checkout records a demonstration order only. No payment is taken and nothing is shipped. See <a href="/policies">policies</a>.</p></details>
+      </div>
+    </div>
+  </div>
+
+  {% if related %}
+  <section class="section" aria-labelledby="related-title">
+    <div class="section-head"><div><p class="eyebrow">Also in {{ collections[product.category] }}</p><h2 id="related-title">You may also like</h2></div></div>
+    <div class="grid">{% for p in related %}{% include "_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

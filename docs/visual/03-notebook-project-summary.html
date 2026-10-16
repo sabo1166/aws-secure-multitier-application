@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOLE ATELIER: Notebook / Project Summary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="notebook.css">
+</head>
+<body>
+<main class="page" aria-label="Project summary page">
+  <h1 class="title">Secure Three-Tier App: SOLE ATELIER</h1>
+  <hr class="rule">
+
+  <div class="chips">
+    <div class="chip"><b>Implemented</b><span>Storefront app, tests, docs, runbooks</span></div>
+    <div class="chip"><b>Tested (local only)</b><span>91 tests, 35 browser checks, SQLite</span></div>
+    <div class="chip"><b>Deployed</b><span>Nothing. No AWS resource exists</span></div>
+    <div class="chip plan"><b>Planned</b><span>Manual AWS build, then evidence</span></div>
+  </div>
+
+  <div class="cards">
+    <section class="card">
+      <h4><span class="num">1</span>What it does and why</h4>
+      <p>A working sneaker storefront (catalogue, per-size stock, cart, demo checkout) designed for a three-tier AWS build done by hand in the Console.</p>
+      <p><b>Why it matters:</b> a real app makes the AWS questions real: how does it reach a private database, who can read the password, what does a healthy target group prove?</p>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">2</span>Architecture and flow</h4>
+      <div class="flow"><span class="node">User</span><span class="arrow">&rarr;</span><span class="node">IGW</span><span class="arrow">&rarr;</span><span class="node">ALB</span><span class="arrow">&rarr;</span><span class="node">EC2 FastAPI</span><span class="arrow">&rarr;</span><span class="node">RDS MySQL</span></div>
+      <p>Public subnets hold the ALB, private subnets the app, isolated subnets the database. A NAT gateway gives the app outbound 443 for Secrets Manager and Session Manager.</p>
+      <p style="color:#a15c00;margin:0"><b>Design only.</b> Full diagram in architecture.png.</p>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">3</span>Technologies and roles</h4>
+      <table class="roles">
+        <tr><td>FastAPI + Jinja2</td><td>pages and JSON API (built)</td></tr>
+        <tr><td>SQLAlchemy</td><td>SQLite locally, MySQL on RDS</td></tr>
+        <tr><td>VPC + subnets</td><td>public / private tiers (plan)</td></tr>
+        <tr><td>Security groups</td><td>tier-to-tier rules (plan)</td></tr>
+        <tr><td>RDS MySQL 8.4</td><td>orders and stock (plan)</td></tr>
+        <tr><td>Secrets Manager</td><td>DB and session secrets (plan)</td></tr>
+        <tr><td>Session Manager</td><td>shell with no port 22 (plan)</td></tr>
+      </table>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">4</span>Implementation steps</h4>
+      <ul>
+        <li><span class="tag v">Local</span>App built, tested here (CP8 implemented)</li>
+        <li><span class="tag p">Planned</span>Budget, MFA (CP0)</li>
+        <li><span class="tag p">Planned</span>VPC, subnets, route tables (CP1)</li>
+        <li><span class="tag p">Planned</span>Security groups (CP2), RDS (CP3)</li>
+        <li><span class="tag p">Planned</span>IAM, NAT, EC2 (CP4), ALB (CP5)</li>
+        <li><span class="tag p">Planned</span>Negative tests, teardown (CP6, CP7)</li>
+      </ul>
+      <p style="margin:0;color:#566170">No AWS step has been performed.</p>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">5</span>Important commands</h4>
+      <div class="cmd">pytest <i># 91 passed (run)</i></div>
+      <div class="cmd">python tools/mutation_check.py <i># 6/6 caught (run)</i></div>
+      <div class="cmd">node tools/browser-smoke.mjs URL <i># 35/35 (run)</i></div>
+      <div class="cmd">python -m backend.init_db --admin-user admin <i># not run: needs RDS</i></div>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">6</span>Key concepts in the design</h4>
+      <ul>
+        <li>A subnet is public because of its route, not its name</li>
+        <li>Security groups reference security groups</li>
+        <li>Liveness vs readiness health checks</li>
+        <li>Atomic <code>UPDATE ... WHERE stock &gt;= n</code></li>
+        <li>Idempotency key stops double orders</li>
+        <li>Server prices; browser sends ids only</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">7</span>Evidence status</h4>
+      <p><span class="tag v">Verified</span>Local tests, browser run, health checks, contrast (<span style="white-space:nowrap">E-015 to E-020</span>)</p>
+      <p><span class="tag u">Not verified</span>MySQL, real concurrency, other browsers</p>
+      <p><span class="tag p">Planned</span>All AWS evidence, E-001 to E-014</p>
+      <p style="margin:0;color:#566170">Limits: AZ-a failure likely means an outage (one NAT, one DB).</p>
+    </section>
+
+    <section class="card">
+      <h4><span class="num">8</span>Security notes</h4>
+      <ul>
+        <li><span class="tag v">Tested</span>CSRF, parameterised SQL, escaped HTML, strict CSP</li>
+        <li><span class="tag p">Planned</span>Private DB, SG chain, no SSH, 2-secret role</li>
+        <li><span class="tag u">Gap</span>HTTP only, no rate limit, no secret rotation</li>
+      </ul>
+    </section>
+
+    <section class="card wide">
+      <h4><span class="num">9</span>Likely interview questions</h4>
+      <div class="two" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><h3 style="margin-top:0">Healthy target = working app?</h3><p>No. It proves the ALB reached /health. The database, checkout and security need their own tests.</p></div>
+        <div><h3 style="margin-top:0">Last pair, two buyers?</h3><p>One conditional UPDATE wins; the other gets a 409 and rolls back. Tested in sequence, not under load.</p></div>
+        <div><h3 style="margin-top:0">What if AZ a fails?</h3><p>Probably an outage: NAT and RDS sit in AZ a. Accepted for cost and stated openly.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sticky">
+    <h4>Interview explanation (30 seconds)</h4>
+    <p>I built a sneaker storefront where the server, not the browser, decides prices and stock, and I tested that by breaking it on purpose. I designed it for a private database behind security-group chaining on AWS, but I have not built or verified the AWS side yet, so I report it as planned.</p>
+  </div>
+
+  <div class="foot"><span>Source: this repository's files and recorded local runs only. Nothing here is a claimed deployment or metric.</span><span class="mg" aria-label="MG mark">MG</span></div>
+</main>
+</body>
+</html>

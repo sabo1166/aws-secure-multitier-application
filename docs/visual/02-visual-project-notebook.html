@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SOLE ATELIER: Visual Project Notebook</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="notebook.css">
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<main class="page" aria-label="Notebook page 1">
+  <p class="kicker">Visual project notebook &middot; page 1 of 3</p>
+  <h1 class="title">SOLE ATELIER: how the pieces fit</h1>
+  <p class="sub">A study notebook for the project. Every line carries an evidence label so the page never claims more than the evidence supports.</p>
+  <hr class="rule">
+
+  <div class="cards" style="grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px">
+    <div class="chip"><b style="color:#1d6b3a">Verified</b><span>Run or seen in this project&rsquo;s recorded evidence</span></div>
+    <div class="chip"><b style="color:#2563a6">Reported</b><span>In the author&rsquo;s notes, no result captured</span></div>
+    <div class="chip"><b style="color:#7a5cc4">Conceptual</b><span>A general fact, not run here</span></div>
+    <div class="chip"><b style="color:#b45309">Unverified</b><span>Believed, not evidenced</span></div>
+    <div class="chip"><b style="color:#5b6677">Planned</b><span>An intention, not an event</span></div>
+  </div>
+
+  <div class="cards">
+    <section class="card wide">
+      <h4><span class="num">1</span>What this project teaches</h4>
+      <ul>
+        <li><span class="tag v">Verified</span>How an application enforces prices, stock and validation on the server, and how to prove it with tests that fail when the code is broken (91 tests, 6/6 deliberate bugs caught).</li>
+        <li><span class="tag p">Planned</span>How to build a three-tier network by hand: public, private and database subnets, security-group chaining, NAT, ALB, RDS, IAM role, Session Manager.</li>
+        <li><span class="tag p">Planned</span>How to prove an AWS claim: a configuration screenshot versus a behaviour test (for example, a failed connection to the database from outside).</li>
+      </ul>
+    </section>
+  </div>
+
+  <h2>Architecture (design, not deployed)</h2>
+  <figure class="figure"><img src="../diagrams/architecture-compact.svg" alt="Target AWS architecture, compact view"><figcaption><span class="tag p">Planned</span>Target design. No AWS resource exists. Port numbers are destination ports.</figcaption></figure>
+
+  <h2>Request flow</h2>
+  <table class="t">
+    <tr><th style="width:4%">#</th><th>Step</th><th style="width:16%">Control</th><th style="width:13%">Label</th></tr>
+    <tr><td>1</td><td>Browser sends HTTP 80 to the internet-facing ALB</td><td>alb-sg</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>2</td><td>ALB forwards to FastAPI on port 8080 in a private subnet</td><td>app-sg from alb-sg</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>3</td><td>App validates input, reads and writes MySQL on 3306</td><td>db-sg from app-sg</td><td><span class="tag p">Planned</span> (code <span class="tag v">Verified</span> on SQLite)</td></tr>
+    <tr><td>4</td><td>At startup the app reads two secrets using its IAM role, through NAT on 443</td><td>role limited to two ARNs</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>5</td><td>ALB health check calls <code>/health</code>, which does not query the database</td><td>liveness only</td><td><span class="tag v">Verified</span> locally</td></tr>
+  </table>
+  <div class="callout"><b>Why it matters:</b> a healthy target group proves only that the ALB reached port 8080 and got a 200. It does not prove the database is secure or that checkout works.</div>
+
+  <div class="foot"><span>Source: this repository only. Nothing here is a claimed deployment or metric.</span><span>1 / 3</span></div>
+</main>
+
+<!-- PAGE 2 -->
+<main class="page" aria-label="Notebook page 2">
+  <p class="kicker">Visual project notebook &middot; page 2 of 3</p>
+  <h1 class="title">The application: cart, orders and data</h1>
+  <hr class="rule">
+
+  <h2>Cart and order workflow</h2>
+  <figure class="figure">
+    <svg viewBox="0 0 700 250" width="100%" role="img" aria-label="Sequence: browser adds item, server validates and prices from the database, order reserves stock atomically and records an order" style="display:block">
+      <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1c2430"/></marker></defs>
+      <g font-family="Inter, sans-serif" font-size="11" fill="#1c2430">
+        <rect x="10" y="10" width="120" height="34" rx="6" fill="#e6f1fb" stroke="#2b6cb0"/><text x="70" y="31" text-anchor="middle" font-weight="600">Browser</text>
+        <rect x="290" y="10" width="120" height="34" rx="6" fill="#e6f1fb" stroke="#2b6cb0"/><text x="350" y="31" text-anchor="middle" font-weight="600">FastAPI</text>
+        <rect x="570" y="10" width="120" height="34" rx="6" fill="#fdecd8" stroke="#d98324"/><text x="630" y="31" text-anchor="middle" font-weight="600">Database</text>
+        <g stroke="#9aa7b8" stroke-dasharray="4 4"><line x1="70" y1="44" x2="70" y2="240"/><line x1="350" y1="44" x2="350" y2="240"/><line x1="630" y1="44" x2="630" y2="240"/></g>
+        <g stroke="#1c2430" stroke-width="1.6" fill="none" marker-end="url(#m)">
+          <path d="M70,72 L348,72"/><path d="M352,98 L628,98"/><path d="M628,122 L352,122"/><path d="M348,148 L72,148"/>
+          <path d="M70,176 L348,176"/><path d="M352,202 L628,202"/><path d="M348,228 L72,228"/>
+        </g>
+        <text x="209" y="66" text-anchor="middle">POST /api/cart/items {id, size, qty} + CSRF</text>
+        <text x="490" y="92" text-anchor="middle">read product, size, stock</text>
+        <text x="490" y="116" text-anchor="middle">price, stock</text>
+        <text x="209" y="142" text-anchor="middle">cookie: ids and qty only; priced cart</text>
+        <text x="209" y="170" text-anchor="middle">POST /api/orders {address, key} + CSRF</text>
+        <text x="490" y="196" text-anchor="middle">one transaction: UPDATE stock ... WHERE stock &gt;= qty; INSERT order</text>
+        <text x="209" y="222" text-anchor="middle">201 {order_ref} (replay: 200 same order)</text>
+      </g>
+    </svg>
+    <figcaption><span class="tag v">Verified</span>Behaviour covered by automated tests on SQLite. Not run against MySQL or AWS.</figcaption>
+  </figure>
+
+  <h2>The atomic stock reservation (from <code>backend/services/orders.py</code>)</h2>
+  <div class="cmd">UPDATE product_sizes SET stock = stock - :qty
+ WHERE product_id = :p AND size = :s AND stock &gt;= :qty
+<i>-- rowcount != 1  =&gt;  409 "just sold out", roll back every line</i></div>
+
+  <h2>Data model</h2>
+  <table class="t">
+    <tr><th>Table</th><th>Key columns</th><th>Why</th></tr>
+    <tr><td><code>products</code></td><td>slug, name, price NUMERIC(10,2), category, badge, is_active</td><td>Money is decimal, never float</td></tr>
+    <tr><td><code>product_sizes</code></td><td>(product_id, size) key, stock &ge; 0</td><td>Stock is per size, which is what is actually bought</td></tr>
+    <tr><td><code>orders</code></td><td>public_id, idempotency_key (unique), totals, address, status</td><td>Unguessable reference; replay-safe</td></tr>
+    <tr><td><code>order_items</code></td><td>product_name, size, qty, unit_price, line_total</td><td>Snapshots: later price or name changes do not rewrite history</td></tr>
+  </table>
+
+  <h2>Why these choices (and the cost of each)</h2>
+  <table class="t">
+    <tr><th style="width:26%">Choice</th><th>Benefit</th><th style="width:38%">Cost or limit</th></tr>
+    <tr><td>Cart in a signed cookie</td><td>No table; works across two instances with a shared key</td><td>Per browser; lost when cookies clear</td></tr>
+    <tr><td>Idempotency key</td><td>Double click cannot create two orders</td><td>Needs a client-generated key</td></tr>
+    <tr><td>Liveness vs readiness checks</td><td>A database blip does not empty the load balancer</td><td>Instances can be &ldquo;healthy&rdquo; yet return 503</td></tr>
+    <tr><td>Strict CSP, no inline script</td><td>Limits XSS impact</td><td>All JS and CSS must be external files</td></tr>
+    <tr><td>SQLite locally, MySQL on RDS</td><td>Run and test with no AWS cost</td><td>MySQL behaviour unobserved until the AWS build</td></tr>
+  </table>
+
+  <div class="foot"><span>Source: backend/, frontend/, tests/, docs/architecture.md.</span><span>2 / 3</span></div>
+</main>
+
+<!-- PAGE 3 -->
+<main class="page" aria-label="Notebook page 3">
+  <p class="kicker">Visual project notebook &middot; page 3 of 3</p>
+  <h1 class="title">Network, security, commands and revision</h1>
+  <hr class="rule">
+
+  <div class="two">
+    <div>
+      <h2 style="margin-top:0">Subnets</h2>
+      <table class="t">
+        <tr><th>Name</th><th>CIDR</th><th>Internet route</th></tr>
+        <tr><td>public-a / b</td><td>10.0.0.0/24, 10.0.1.0/24</td><td>IGW</td></tr>
+        <tr><td>app-a / b</td><td>10.0.10.0/24, 10.0.11.0/24</td><td>NAT (CP4)</td></tr>
+        <tr><td>db-a / b</td><td>10.0.20.0/24, 10.0.21.0/24</td><td>none</td></tr>
+      </table>
+      <p style="font-size:10px;color:#566170"><span class="tag p">Planned</span>A subnet is public only because its route table points at an internet gateway.</p>
+    </div>
+    <div>
+      <h2 style="margin-top:0">Security-group chain</h2>
+      <table class="t">
+        <tr><th>Group</th><th>In</th><th>Out</th></tr>
+        <tr><td>alb-sg</td><td>80 from internet</td><td>8080 to app-sg</td></tr>
+        <tr><td>app-sg</td><td>8080 from alb-sg</td><td>3306 to db-sg, 443</td></tr>
+        <tr><td>db-sg</td><td>3306 from app-sg</td><td>none</td></tr>
+      </table>
+      <p style="font-size:10px;color:#566170"><span class="tag p">Planned</span>No rule for port 22 anywhere.</p>
+    </div>
+  </div>
+
+  <h2>Commands</h2>
+  <div class="cmd"><i># local, run in this project</i>
+pytest                                   <i># 91 passed</i>
+python tools/mutation_check.py           <i># 6/6 caught</i>
+node tools/check-docs.mjs                <i># documentation rules</i></div>
+  <div class="cmd"><i># conceptual: not run, needs the AWS build</i>
+python -m backend.init_db --admin-user admin --seed     <i># create tables once (admin, prompted password)</i>
+nc -vz &lt;rds-endpoint&gt; 3306                          <i># from outside the VPC: must time out</i>
+curl -s http://127.0.0.1:8080/health/ready          <i># on an instance: database ok</i></div>
+  <p><span class="tag v">Verified</span> for the first block. <span class="tag c">Conceptual</span> for the second; none has been run against AWS.</p>
+
+  <h2>Validation checklist for the AWS build</h2>
+  <table class="t">
+    <tr><th>Test</th><th>Proves</th><th>Does not prove</th><th style="width:12%">Status</th></tr>
+    <tr><td>Failed connection to RDS from the internet (E-007)</td><td>Not reachable from outside</td><td>Not reachable from inside</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>Order row in RDS after an order via the ALB (E-008)</td><td>Browser to ALB to app to DB works</td><td>Behaviour under load</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>Two healthy targets in two AZs (E-009)</td><td>ALB reaches /health</td><td>DB security, checkout</td><td><span class="tag p">Planned</span></td></tr>
+    <tr><td>Terminate one instance (E-012)</td><td>Service survives one instance</td><td>AZ-level failure</td><td><span class="tag p">Planned</span></td></tr>
+  </table>
+
+  <h2>Revision questions</h2>
+  <ul>
+    <li>What exactly makes a subnet public, and what is in the database subnets&rsquo; route table?</li>
+    <li>Why does <code>db-sg</code> name <code>app-sg</code> instead of a CIDR range?</li>
+    <li>Why must a DB subnet group span two AZs when the instance runs in one?</li>
+    <li>What would break if <code>/health</code> queried the database?</li>
+    <li>Which parts of this project are verified, and which only designed?</li>
+  </ul>
+
+  <div class="sticky"><h4>Remember</h4><p>Configuration is not behaviour. Say &ldquo;planned&rdquo; until I have my own screenshot and my own test.</p></div>
+
+  <div class="foot"><span>Source: this repository only. Cost and price figures are intentionally absent.</span><span>3 / 3</span></div>
+</main>
+</body>
+</html>

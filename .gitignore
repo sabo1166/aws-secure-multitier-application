@@ -1,0 +1,23 @@
+# Secrets and local state
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.pem
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Private evidence (only evidence/redacted/ may ever be published)
+evidence/raw/*
+!evidence/raw/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

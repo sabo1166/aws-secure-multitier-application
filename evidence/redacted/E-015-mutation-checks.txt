@@ -1,0 +1,13 @@
+# E-015 mutation checks, run by Claude on 2026-10-15 15:19 UTC against the backend/ layout
+$ python tools/mutation_check.py
+Baseline: 91 passed, 1 warning in 12.69s
+
+CAUGHT    Stock guard removed (allows overselling)  [1 failed, 34 passed, 1 warning in 6.03s]
+CAUGHT    CSRF check disabled  [1 failed, 2 passed, 1 warning in 0.65s]
+CAUGHT    Quantity ignored when pricing a line  [1 failed, 1 warning in 0.41s]
+CAUGHT    Price snapshot replaced by a live lookup of zero  [1 failed, 14 passed, 1 warning in 3.04s]
+CAUGHT    Inactive products shown in the shop  [1 failed, 40 passed, 1 warning in 6.90s]
+CAUGHT    Order confirmation visible to anyone with the reference  [1 failed, 16 passed, 1 warning in 2.96s]
+
+After restoring files: 91 passed, 1 warning in 12.70s
+6/6 mutations caught

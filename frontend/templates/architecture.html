@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Architecture · {{ store_name }}{% endblock %}
+{% block description %}The target AWS architecture for SOLE ATELIER and how a request moves through it. Design only: nothing is deployed yet.{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/engineering.css">{% endblock %}
+{% block content %}
+<section class="eng-head wrap">
+  <p class="eyebrow">Behind the build</p>
+  <h1>How a request moves through the system</h1>
+  <p class="status-banner" role="note"><span class="status-dot" aria-hidden="true"></span><strong>{{ arch.title }}</strong></p>
+  <p class="lead">{{ arch.note }} The {{ arch.components|length }} components, the trust boundary around each, and four traffic flows are described below. The roadmap shows <a href="/roadmap">what has and has not been built</a>.</p>
+</section>
+
+<section class="wrap" aria-labelledby="diagram-title">
+  <h2 id="diagram-title" class="sr-only">Architecture diagram</h2>
+
+  <div class="arch-controls js-only" role="group" aria-label="Traffic flow controls">
+    <div class="flow-picker" role="group" aria-label="Choose a flow">
+      {% for f in arch.flows %}<button type="button" class="flow-btn" data-flow="{{ f.id }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ f.title }}</button>{% endfor %}
+    </div>
+    <div class="transport" role="group" aria-label="Playback">
+      <button type="button" class="ctl" id="ctl-back" aria-label="Previous step">&larr; Back</button>
+      <button type="button" class="ctl ctl-main" id="ctl-play" aria-pressed="false">Play</button>
+      <button type="button" class="ctl" id="ctl-next" aria-label="Next step">Next &rarr;</button>
+      <button type="button" class="ctl" id="ctl-replay">Replay</button>
+    </div>
+  </div>
+
+  <div class="arch-grid">
+    <div class="arch-stage">
+      <p class="scroll-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="arch-scroll">
+        <svg id="arch-svg" viewBox="0 0 1120 560" role="group" aria-labelledby="svg-title svg-desc" focusable="false">
+          <title id="svg-title">{{ arch.title }}</title>
+          <desc id="svg-desc">Traffic enters from the internet through an internet gateway to a load balancer in the public subnets, then to application instances in private subnets, then to a database in isolated subnets. A NAT gateway gives the private instances an outbound path to Secrets Manager and Systems Manager.</desc>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrow-head"/></marker>
+          </defs>
+
+          <text class="stamp" x="1104" y="16" text-anchor="end">TARGET ARCHITECTURE · AWS DEPLOYMENT PENDING</text>
+
+          <!-- trust zones -->
+          <rect class="zone zone-internet" x="8" y="150" width="112" height="270" rx="10"/>
+          <text class="zone-name" x="18" y="174">INTERNET</text><text class="zone-trust" x="18" y="190">untrusted</text>
+
+          <rect class="vpc" x="190" y="20" width="700" height="520" rx="14"/>
+          <text class="vpc-label" x="204" y="40">VPC 10.0.0.0/16</text>
+
+          <rect class="zone zone-public" x="245" y="60" width="180" height="440" rx="10"/>
+          <text class="zone-name" x="256" y="82">PUBLIC SUBNETS</text><text class="zone-trust" x="256" y="98">reachable from internet</text>
+          <rect class="zone zone-app" x="460" y="60" width="190" height="440" rx="10"/>
+          <text class="zone-name" x="471" y="82">PRIVATE APP SUBNETS</text><text class="zone-trust" x="471" y="98">no public IP</text>
+          <rect class="zone zone-db" x="685" y="60" width="195" height="440" rx="10"/>
+          <text class="zone-name" x="696" y="82">PRIVATE DB SUBNETS</text><text class="zone-trust" x="696" y="98">no route to the internet</text>
+          <rect class="zone zone-aws" x="915" y="60" width="190" height="440" rx="10"/>
+          <text class="zone-name" x="926" y="82">AWS SERVICES</text><text class="zone-trust" x="926" y="98">outside the VPC, HTTPS</text>
+
+          <!-- edges (also the tracks the packet follows) -->
+          <path id="edge-browser-igw" class="edge" d="M110,285 L160,285" marker-end="url(#arrow)"/>
+          <path id="edge-igw-alb" class="edge" d="M220,285 L258,285" marker-end="url(#arrow)"/>
+          <path id="edge-alb-app-a" class="edge" d="M412,285 L440,285 L440,205 L472,205" marker-end="url(#arrow)"/>
+          <path id="edge-alb-app-b" class="edge" d="M412,285 L440,285 L440,385 L472,385" marker-end="url(#arrow)"/>
+          <path id="edge-app-rds" class="edge" d="M638,190 L662,190 L662,250 L700,250" marker-end="url(#arrow)"/>
+          <path id="edge-appb-rds" class="edge" d="M638,380 L662,380 L662,290 L700,290" marker-end="url(#arrow)"/>
+          <path id="edge-app-nat" class="edge edge-out" d="M472,170 L412,170" marker-end="url(#arrow)"/>
+          <path id="edge-nat-secrets" class="edge edge-out" d="M412,140 L436,140 L436,44 L905,44 L905,165 L925,165" marker-end="url(#arrow)"/>
+          <path id="edge-nat-ssm" class="edge edge-out" d="M412,155 L448,155 L448,52 L898,52 L898,265 L925,265" marker-end="url(#arrow)"/>
+
+          <!-- components -->
+          <g class="node planned" data-component="browser" tabindex="0" role="button" aria-label="Customer browser, internet. Planned. Press Enter for details.">
+            <rect x="18" y="250" width="92" height="70" rx="8"/><text class="n-name" x="64" y="280" text-anchor="middle">Browser</text><text class="n-sub" x="64" y="298" text-anchor="middle">HTTP only</text>
+          </g>
+          <g class="node planned" data-component="igw" tabindex="0" role="button" aria-label="Internet gateway. Planned. Press Enter for details.">
+            <rect x="160" y="253" width="60" height="64" rx="8"/><text class="n-name" x="190" y="282" text-anchor="middle">IGW</text><text class="n-sub" x="190" y="299" text-anchor="middle">route in</text>
+          </g>
+          <g class="node planned" data-component="alb" tabindex="0" role="button" aria-label="Application Load Balancer, public subnets. Planned. Press Enter for details.">
+            <rect x="258" y="245" width="154" height="80" rx="8"/><text class="n-name" x="335" y="272" text-anchor="middle">Load balancer (ALB)</text><text class="n-sub" x="335" y="290" text-anchor="middle">alb-sg</text><text class="n-sub" x="335" y="306" text-anchor="middle">80 in · 8080 out</text>
+          </g>
+          <g class="node planned" data-component="nat" tabindex="0" role="button" aria-label="NAT gateway, public subnet. Planned. Press Enter for details.">
+            <rect x="258" y="125" width="154" height="70" rx="8"/><text class="n-name" x="335" y="154" text-anchor="middle">NAT gateway</text><text class="n-sub" x="335" y="172" text-anchor="middle">443 out · AZ a only</text>
+          </g>
+          <g class="node planned" data-component="app" tabindex="0" role="button" aria-label="Application instance in AZ a, private app subnet. Planned. Press Enter for details.">
+            <rect x="472" y="135" width="166" height="90" rx="8"/><text class="n-name" x="555" y="163" text-anchor="middle">App instance · AZ a</text><text class="n-sub" x="555" y="181" text-anchor="middle">FastAPI · app-sg</text><text class="n-sub" x="555" y="197" text-anchor="middle">8080 in · no SSH</text>
+          </g>
+          <g class="node planned" data-component="app" tabindex="0" role="button" aria-label="Application instance in AZ b, private app subnet. Planned. Press Enter for details.">
+            <rect x="472" y="335" width="166" height="90" rx="8"/><text class="n-name" x="555" y="363" text-anchor="middle">App instance · AZ b</text><text class="n-sub" x="555" y="381" text-anchor="middle">FastAPI · app-sg</text><text class="n-sub" x="555" y="397" text-anchor="middle">8080 in · no SSH</text>
+          </g>
+          <g class="node planned" data-component="rds" tabindex="0" role="button" aria-label="RDS for MySQL, private database subnet. Planned. Press Enter for details.">
+            <rect x="700" y="215" width="165" height="100" rx="8"/><text class="n-name" x="782" y="246" text-anchor="middle">RDS MySQL 8.4</text><text class="n-sub" x="782" y="264" text-anchor="middle">db-sg · 3306 in</text><text class="n-sub" x="782" y="280" text-anchor="middle">not public · encrypted</text><text class="n-sub" x="782" y="296" text-anchor="middle">single instance, AZ a</text>
+          </g>
+          <g class="spare"><rect x="700" y="365" width="165" height="64" rx="8"/><text class="n-sub" x="782" y="393" text-anchor="middle">db-b subnet</text><text class="n-sub" x="782" y="410" text-anchor="middle">no instance (subnet group)</text></g>
+          <g class="node planned" data-component="secrets" tabindex="0" role="button" aria-label="Secrets Manager. Planned. Press Enter for details.">
+            <rect x="925" y="130" width="170" height="70" rx="8"/><text class="n-name" x="1010" y="158" text-anchor="middle">Secrets Manager</text><text class="n-sub" x="1010" y="176" text-anchor="middle">2 secrets, read at startup</text>
+          </g>
+          <g class="node planned" data-component="ssm" tabindex="0" role="button" aria-label="Systems Manager Session Manager. Planned. Press Enter for details.">
+            <rect x="925" y="230" width="170" height="70" rx="8"/><text class="n-name" x="1010" y="258" text-anchor="middle">Session Manager</text><text class="n-sub" x="1010" y="276" text-anchor="middle">shell, no port 22</text>
+          </g>
+
+          <!-- legend -->
+          <g class="legend">
+            <rect class="legend-box" x="212" y="510" width="26" height="14" rx="3"/><text x="246" y="522">Dashed outline: designed, not built</text>
+            <path class="edge legend-edge" d="M470,517 L500,517" marker-end="url(#arrow)"/><text x="508" y="522">Request path</text>
+            <path class="edge edge-out legend-edge" d="M610,517 L640,517" marker-end="url(#arrow)"/><text x="648" y="522">Outbound HTTPS from private instances</text>
+          </g>
+
+          <!-- animated packet and its label (positioned by script) -->
+          <g id="edge-tag" visibility="hidden"><rect class="tag-bg" rx="4" height="22" width="60"/><text class="tag-text" x="8" y="15"></text></g>
+          <circle id="packet" class="packet" r="7" cx="0" cy="0" visibility="hidden"/>
+        </svg>
+      </div>
+    </div>
+
+    <aside class="arch-side" aria-label="Details">
+      <div class="step-card js-only" id="step-card" aria-live="polite" aria-atomic="true">
+        <p class="step-count" id="step-count">Choose a flow</p>
+        <h2 class="step-title" id="step-title">Traffic flow</h2>
+        <p class="step-text" id="step-text">Press Play, or step through with Next. Select any component in the diagram to inspect it.</p>
+      </div>
+      <div class="inspector js-only" id="inspector" aria-live="polite">
+        <p class="inspector-empty">Select a component to see its responsibility, its controls, and the evidence it still needs.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="wrap eng-section" aria-labelledby="zones-title">
+  <h2 id="zones-title">Trust zones</h2>
+  <p class="muted">Where each boundary sits, and what is allowed to cross it. The security group is the rule at the edge of the tier.</p>
+  <div class="table-wrap">
+    <table class="eng-table">
+      <thead><tr><th scope="col">Zone</th><th scope="col">Trust</th><th scope="col">Subnets</th><th scope="col">Security group</th><th scope="col">What it means</th></tr></thead>
+      <tbody>
+        {% for z in arch.zones %}
+        <tr><th scope="row">{{ z.name }}</th><td>{{ z.trust }}</td><td>{% if z.cidrs %}{{ z.cidrs|join(', ') }}{% else %}&mdash;{% endif %}</td><td>{% if z.sg %}<code>{{ z.sg }}</code>{% else %}&mdash;{% endif %}</td><td>{{ z.detail }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="wrap eng-section" aria-labelledby="flows-title">
+  <h2 id="flows-title">The four flows, step by step</h2>
+  <div class="flows-text">
+    {% for f in arch.flows %}
+    <article class="flow-text" id="flow-{{ f.id }}">
+      <h3>{{ f.title }}</h3>
+      <p class="muted">{{ f.intro }}</p>
+      <ol>{% for s in f.steps %}<li><strong>{{ s.label }}.</strong> {{ s.text }}</li>{% endfor %}</ol>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap eng-section" aria-labelledby="components-title">
+  <h2 id="components-title">Components</h2>
+  <p class="muted">Every component is <strong>Planned</strong>. The decision and evidence references point into the project's decision log and evidence register.</p>
+  <div class="component-grid">
+    {% for c in arch.components %}
+    <article class="component-card" id="c-{{ c.id }}" data-component="{{ c.id }}">
+      <header>
+        <h3>{{ c.name }}</h3>
+        <p class="zone-chip">{{ arch.zone_by_id[c.zone].name }}</p>
+        <span class="chip chip-planned">Planned</span>
+      </header>
+      <p>{{ c.summary }}</p>
+      {% if c.ports %}<p class="ports"><span class="k">Ports</span> {{ c.ports|join(' · ') }}</p>{% endif %}
+      <h4>Controls</h4>
+      <ul>{% for k in c.controls %}<li>{{ k }}</li>{% endfor %}</ul>
+      <p class="refs"><span><span class="k">Decisions</span>{{ c.decisions|join(', ') }}</span> <span><span class="k">Evidence still needed</span>{{ c.evidence|join(', ') }}</span></p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="wrap eng-section">
+  <h2>What this does not show</h2>
+  <p>Route tables, the IAM instance role in detail, cross-zone load balancing, and any real AWS resource. No resource exists yet. The static picture used on GitHub is <code>architecture.png</code> in the repository root; its editable source is <code>docs/diagrams/architecture.svg</code>.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/architecture.js" defer></script>{% endblock %}

@@ -1,0 +1,711 @@
+{
+  "source": [
+    "docs/project/EVIDENCE_REGISTER.md",
+    "docs/project/DECISIONS.md",
+    "docs/project/PROJECT_STATUS.md",
+    "docs/project/roadmap-phases.json"
+  ],
+  "summary": {
+    "evidence": {
+      "total": 23,
+      "verified": 8,
+      "implemented": 0,
+      "inProgress": 0,
+      "planned": 15,
+      "blocked": 0,
+      "failed": 0
+    },
+    "local": {
+      "total": 9,
+      "verified": 8,
+      "implemented": 0,
+      "inProgress": 0,
+      "planned": 1,
+      "blocked": 0,
+      "failed": 0
+    },
+    "aws": {
+      "total": 14,
+      "verified": 0,
+      "implemented": 0,
+      "inProgress": 0,
+      "planned": 14,
+      "blocked": 0,
+      "failed": 0
+    },
+    "openDecisions": [
+      "D-002",
+      "D-012"
+    ],
+    "claims": [
+      {
+        "id": "E-001",
+        "scope": "aws",
+        "cp": "CP0",
+        "status": "planned",
+        "claim": "A budget alert exists with an email notification"
+      },
+      {
+        "id": "E-002",
+        "scope": "aws",
+        "cp": "CP0",
+        "status": "planned",
+        "claim": "Root user has MFA and daily work uses a non-root identity"
+      },
+      {
+        "id": "E-003",
+        "scope": "aws",
+        "cp": "CP1",
+        "status": "planned",
+        "claim": "VPC has DNS hostnames enabled and six subnets in two AZs with non-overlapping CIDRs"
+      },
+      {
+        "id": "E-004",
+        "scope": "aws",
+        "cp": "CP1",
+        "status": "planned",
+        "claim": "Only the public subnets have a route to the internet gateway"
+      },
+      {
+        "id": "E-005",
+        "scope": "aws",
+        "cp": "CP2",
+        "status": "planned",
+        "claim": "Security group rules implement the alb-sg, app-sg, db-sg chain"
+      },
+      {
+        "id": "E-006",
+        "scope": "aws",
+        "cp": "CP3",
+        "status": "planned",
+        "claim": "RDS instance is not publicly accessible and sits in the db subnets"
+      },
+      {
+        "id": "E-007",
+        "scope": "aws",
+        "cp": "CP6",
+        "status": "planned",
+        "claim": "The database cannot be reached from the internet"
+      },
+      {
+        "id": "E-008",
+        "scope": "aws",
+        "cp": "CP6",
+        "status": "planned",
+        "claim": "The app reads and writes the database through the ALB path"
+      },
+      {
+        "id": "E-009",
+        "scope": "aws",
+        "cp": "CP5",
+        "status": "planned",
+        "claim": "The ALB serves traffic to targets in both AZs"
+      },
+      {
+        "id": "E-010",
+        "scope": "aws",
+        "cp": "CP6",
+        "status": "planned",
+        "claim": "App instances have no public IP and are not directly reachable"
+      },
+      {
+        "id": "E-011",
+        "scope": "aws",
+        "cp": "CP4",
+        "status": "planned",
+        "claim": "No SSH ingress anywhere and Session Manager works"
+      },
+      {
+        "id": "E-012",
+        "scope": "aws",
+        "cp": "CP6",
+        "status": "planned",
+        "claim": "Terminating one instance does not stop the service and the ASG replaces it"
+      },
+      {
+        "id": "E-013",
+        "scope": "aws",
+        "cp": "CP4",
+        "status": "planned",
+        "claim": "No database password in code, user data or screenshots"
+      },
+      {
+        "id": "E-014",
+        "scope": "aws",
+        "cp": "CP7",
+        "status": "planned",
+        "claim": "All chargeable resources are deleted"
+      },
+      {
+        "id": "E-015",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "The automated tests pass locally and fail when important behaviour is deliberately broken"
+      },
+      {
+        "id": "E-016",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "The storefront UI works in a real browser: size selection, bag, quantity, validation, demo order, filters, keyboard, mobile menu"
+      },
+      {
+        "id": "E-017",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "Local screenshots show the storefront rendering as designed"
+      },
+      {
+        "id": "E-018",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "Local health endpoints respond as designed"
+      },
+      {
+        "id": "E-019",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "planned",
+        "claim": "The learner has re-run the tests and the app locally and can explain them"
+      },
+      {
+        "id": "E-020",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "The design's colour pairs meet WCAG AA contrast"
+      },
+      {
+        "id": "E-021",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "The pinned direct dependencies have no known vulnerabilities on the scan date"
+      },
+      {
+        "id": "E-022",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "The project installs and passes its tests from a clean virtual environment built only from the requirements files"
+      },
+      {
+        "id": "E-023",
+        "scope": "local",
+        "cp": "CP8",
+        "status": "verified",
+        "claim": "`.gitignore` keeps secrets, databases, keys, virtual environments and raw evidence out of a commit"
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "CP0",
+        "name": "Account guardrails: budget alert, root MFA, non-root admin identity, region chosen",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP1",
+        "name": "VPC, six subnets, internet gateway, route tables",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP2",
+        "name": "Security groups (alb-sg, app-sg, db-sg)",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP3",
+        "name": "RDS MySQL in private subnets with managed secret",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP4",
+        "name": "IAM role, launch template, app bootstrap (adds NAT Gateway)",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP5",
+        "name": "ALB, target group, Auto Scaling group",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP6",
+        "name": "End-to-end and negative tests",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP7",
+        "name": "Teardown and cost check",
+        "status": "PLANNED"
+      },
+      {
+        "id": "CP8",
+        "name": "Application built and tested locally (SQLite)",
+        "status": "IMPLEMENTED"
+      }
+    ]
+  },
+  "phases": [
+    {
+      "id": "foundation",
+      "number": 1,
+      "title": "Application foundation",
+      "short": "Foundation",
+      "summary": "A storefront that runs with no AWS account, so a failure in the cloud can be blamed on the infrastructure and not on the code.",
+      "objective": "Build the application on SQLite first, with the same code paths that will later talk to RDS.",
+      "status": "in_progress",
+      "statusLabel": "In progress",
+      "counts": {
+        "completed": 3,
+        "in_progress": 1,
+        "planned": 0,
+        "blocked": 0
+      },
+      "tasks": [
+        {
+          "text": "Python backend in backend/, server-rendered frontend in frontend/",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-022",
+            "E-016"
+          ],
+          "why": "E-022 verified, E-016 verified",
+          "detail": "Installs and passes its tests from a clean virtual environment; CSS, fonts, JavaScript and images load in a real browser."
+        },
+        {
+          "text": "Configuration through environment variables; production refuses weak secrets and SQLite",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-015"
+          ],
+          "why": "E-015 verified",
+          "detail": "Covered by the configuration tests."
+        },
+        {
+          "text": "SQLAlchemy models, per-size stock, persistence on SQLite",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-015"
+          ],
+          "why": "E-015 verified",
+          "detail": "Orders survive an application restart in the tests."
+        },
+        {
+          "text": "The same code on MySQL (RDS): connection, TLS option, schema creation",
+          "status": "in_progress",
+          "statusLabel": "In progress",
+          "refs": [
+            "E-006",
+            "E-008"
+          ],
+          "why": "code written; E-006 planned, E-008 planned",
+          "detail": "URL building and the TLS option are unit tested; no run against a live MySQL yet."
+        }
+      ],
+      "validation": [
+        "pytest passes from a clean virtual environment (E-022).",
+        "The browser test confirms the stylesheet, fonts, scripts and images load from frontend/static (E-016).",
+        "A demo order is written and read back on SQLite (E-015)."
+      ],
+      "notInScope": [
+        "Customer accounts and login. Nothing is built, so there is no authentication or authorization to verify. An order is visible only to the browser session that placed it."
+      ]
+    },
+    {
+      "id": "security",
+      "number": 2,
+      "title": "Security design",
+      "short": "Security",
+      "summary": "Decide where each control lives (application code, network, IAM) and mark which ones exist today.",
+      "objective": "Every control has an owner layer and a status; none is claimed without a test or a screenshot.",
+      "status": "in_progress",
+      "statusLabel": "In progress",
+      "counts": {
+        "completed": 3,
+        "in_progress": 1,
+        "planned": 2,
+        "blocked": 0
+      },
+      "tasks": [
+        {
+          "text": "Server-side prices and stock, input validation, CSRF, parameterised SQL, strict CSP, safe errors",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-015",
+            "E-016"
+          ],
+          "why": "E-015 verified, E-016 verified",
+          "detail": "Each control has a test that fails when it is removed."
+        },
+        {
+          "text": "Dependency vulnerability scan",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-021"
+          ],
+          "why": "E-021 verified",
+          "detail": "One manual pip-audit run; repeat before publishing."
+        },
+        {
+          "text": "Secrets read from Secrets Manager, not from code or user data",
+          "status": "in_progress",
+          "statusLabel": "In progress",
+          "refs": [
+            "E-013"
+          ],
+          "why": "code written; E-013 planned",
+          "detail": "Loader written and tested with a fake client; nothing read from AWS yet."
+        },
+        {
+          "text": "Security-group chain (alb-sg, app-sg, db-sg) and no SSH",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-005"
+          ],
+          "why": "E-005 planned",
+          "detail": "Designed; the rules do not exist in AWS yet."
+        },
+        {
+          "text": "Instance role limited to two secrets; database user with DML rights only",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-011"
+          ],
+          "why": "E-011 planned",
+          "detail": "Designed; waiting for the AWS build."
+        },
+        {
+          "text": "Security design written, with the status of every control",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/security.md"
+          ],
+          "why": "document exists",
+          "detail": ""
+        }
+      ],
+      "validation": [
+        "Mutation check: deliberately breaking six behaviours makes tests fail each time (E-015).",
+        "AWS controls are checked by behaviour, not by screenshots of settings: a failed connection from the internet (E-007)."
+      ],
+      "notInScope": [
+        "HTTPS, WAF and rate limiting. Listed as known limitations."
+      ]
+    },
+    {
+      "id": "architecture",
+      "number": 3,
+      "title": "AWS architecture design",
+      "short": "Design",
+      "summary": "A three-tier layout across two Availability Zones, written down with its trade-offs. This phase is design only.",
+      "objective": "A plan specific enough to build from the Console, including how it fails.",
+      "status": "completed",
+      "statusLabel": "Completed",
+      "counts": {
+        "completed": 3,
+        "in_progress": 0,
+        "planned": 0,
+        "blocked": 0
+      },
+      "tasks": [
+        {
+          "text": "Network plan: one VPC, six subnets, route tables, security-group chain",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/architecture.md"
+          ],
+          "why": "document exists",
+          "detail": ""
+        },
+        {
+          "text": "Decision log with the alternatives that were rejected",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/project/DECISIONS.md"
+          ],
+          "why": "document exists",
+          "detail": ""
+        },
+        {
+          "text": "Diagram: static image and an animated traffic-flow view",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "architecture.png",
+            "frontend/templates/architecture.html"
+          ],
+          "why": "document exists",
+          "detail": ""
+        }
+      ],
+      "validation": [
+        "Subnet CIDRs, ports and group names in the animated diagram match docs/architecture.md (checked by tools/check-docs.mjs).",
+        "Failure behaviour is written down: an AZ-a failure likely means an outage, because the NAT gateway and the database are both in AZ a."
+      ],
+      "notInScope": [
+        "Route 53, CloudFront, WAF, Multi-AZ RDS, a NAT gateway per AZ. They are production steps, not part of this design."
+      ]
+    },
+    {
+      "id": "implementation",
+      "number": 4,
+      "title": "Manual AWS implementation",
+      "short": "Build",
+      "summary": "Create every resource by hand in the Console, one checkpoint at a time, with a screenshot for each.",
+      "objective": "Build the design and capture real evidence at each gate before moving on.",
+      "status": "blocked",
+      "statusLabel": "Blocked",
+      "counts": {
+        "completed": 0,
+        "in_progress": 0,
+        "planned": 5,
+        "blocked": 1
+      },
+      "tasks": [
+        {
+          "text": "CP0: budget alert, root MFA, non-root identity, Region chosen",
+          "status": "blocked",
+          "statusLabel": "Blocked",
+          "refs": [
+            "E-001",
+            "E-002"
+          ],
+          "why": "waiting on open decisions D-002, D-012",
+          "detail": ""
+        },
+        {
+          "text": "CP1: VPC, six subnets, internet gateway, route tables",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-003",
+            "E-004"
+          ],
+          "why": "E-003 planned, E-004 planned",
+          "detail": ""
+        },
+        {
+          "text": "CP2: security groups",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-005"
+          ],
+          "why": "E-005 planned",
+          "detail": ""
+        },
+        {
+          "text": "CP3: RDS MySQL in private subnets, encrypted",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-006"
+          ],
+          "why": "E-006 planned",
+          "detail": ""
+        },
+        {
+          "text": "CP4: IAM role, NAT gateway, launch template, first instance through Session Manager",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-011",
+            "E-013"
+          ],
+          "why": "E-011 planned, E-013 planned",
+          "detail": ""
+        },
+        {
+          "text": "CP5: target group, load balancer, two instances",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-009"
+          ],
+          "why": "E-009 planned",
+          "detail": ""
+        }
+      ],
+      "validation": [
+        "Each checkpoint's gate in docs/checkpoints/ or the RDS and deployment guides is met.",
+        "Screenshots are redacted and saved under screenshots/01 to 05, then recorded in the evidence register."
+      ],
+      "notInScope": [
+        "Terraform, CloudFormation, CI/CD, containers. The build is deliberately manual."
+      ]
+    },
+    {
+      "id": "verification",
+      "number": 5,
+      "title": "Testing and verification",
+      "short": "Verify",
+      "summary": "Show that the parts behave as designed, not just that they are configured. A healthy target group is not a working checkout.",
+      "objective": "Every security and availability claim is backed by an observed result.",
+      "status": "in_progress",
+      "statusLabel": "In progress",
+      "counts": {
+        "completed": 4,
+        "in_progress": 0,
+        "planned": 3,
+        "blocked": 0
+      },
+      "tasks": [
+        {
+          "text": "Automated application tests",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-015"
+          ],
+          "why": "E-015 verified",
+          "detail": ""
+        },
+        {
+          "text": "Real-browser checks: flows, keyboard order, mobile layout, static assets",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-016"
+          ],
+          "why": "E-016 verified",
+          "detail": ""
+        },
+        {
+          "text": "Configuration checks: clean-room install, ignore rules, no private files",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "E-022",
+            "E-023"
+          ],
+          "why": "E-022 verified, E-023 verified",
+          "detail": ""
+        },
+        {
+          "text": "A demo order through the load balancer lands in RDS",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-008"
+          ],
+          "why": "E-008 planned",
+          "detail": ""
+        },
+        {
+          "text": "Database unreachable from the internet; instances not directly reachable",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-007",
+            "E-010"
+          ],
+          "why": "E-007 planned, E-010 planned",
+          "detail": ""
+        },
+        {
+          "text": "Terminate one instance; the service survives and is replaced",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-012"
+          ],
+          "why": "E-012 planned",
+          "detail": ""
+        },
+        {
+          "text": "Defects recorded with their causes and fixes",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/troubleshooting.md"
+          ],
+          "why": "document exists",
+          "detail": "Local defects are logged. The AWS issue log is empty because nothing has been built."
+        }
+      ],
+      "validation": [
+        "A claim is VERIFIED only with an evidence file and an observed result (docs/project/EVIDENCE_REGISTER.md).",
+        "Each test states what it proves and what it does not."
+      ],
+      "notInScope": [
+        "Load testing, penetration testing, MySQL concurrency tests. Not planned for this project."
+      ]
+    },
+    {
+      "id": "review",
+      "number": 6,
+      "title": "Final review",
+      "short": "Review",
+      "summary": "Re-run the reviews with real AWS evidence, check the cost, tear everything down, and update the write-ups.",
+      "objective": "Leave a repository where every claim matches its evidence and nothing keeps billing.",
+      "status": "in_progress",
+      "statusLabel": "In progress",
+      "counts": {
+        "completed": 2,
+        "in_progress": 0,
+        "planned": 2,
+        "blocked": 0
+      },
+      "tasks": [
+        {
+          "text": "Review passes on the local build (code, security, documentation, interface)",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/project/QUALITY_REVIEW.md"
+          ],
+          "why": "document exists",
+          "detail": ""
+        },
+        {
+          "text": "Case study, notebook and summary written for the local build",
+          "status": "completed",
+          "statusLabel": "Completed",
+          "refs": [
+            "docs/visual/01-technical-case-study.pdf",
+            "docs/visual/02-visual-project-notebook.pdf",
+            "docs/visual/03-notebook-project-summary.pdf"
+          ],
+          "why": "document exists",
+          "detail": ""
+        },
+        {
+          "text": "Re-review and update the write-ups with real AWS results",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [],
+          "why": "no evidence possible yet",
+          "detail": "Cannot start before the AWS build has evidence."
+        },
+        {
+          "text": "Cost check, teardown in order, billing reviewed the next day",
+          "status": "planned",
+          "statusLabel": "Planned",
+          "refs": [
+            "E-014"
+          ],
+          "why": "E-014 planned",
+          "detail": ""
+        }
+      ],
+      "validation": [
+        "Resource lists are empty for every service in the build Region (E-014).",
+        "README, case study and notebook state only what the register supports."
+      ],
+      "notInScope": []
+    }
+  ]
+}

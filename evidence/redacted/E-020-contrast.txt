@@ -1,0 +1,16 @@
+# E-020 WCAG AA contrast of the stylesheet's colour pairs, computed by Claude on 2026-10-15 15:19 UTC (frontend/static/css/site.css)
+$ python tools/check_contrast.py
+PASS  15.97:1 (needs 4.5)  Body text: ivory on background  [#efe9dd on #0d0e10]
+PASS  14.67:1 (needs 4.5)  Body text: ivory on panel  [#efe9dd on #17181c]
+PASS   7.79:1 (needs 4.5)  Muted text on background  [#aaa497 on #0d0e10]
+PASS   7.15:1 (needs 4.5)  Muted text on panel  [#aaa497 on #17181c]
+PASS   8.03:1 (needs 4.5)  Muted text on footer (#08090a)  [#aaa497 on #08090a]
+PASS   9.82:1 (needs 4.5)  Champagne eyebrow/link on background  [#cdb68f on #0d0e10]
+PASS   9.02:1 (needs 4.5)  Champagne on panel  [#cdb68f on #17181c]
+PASS   9.58:1 (needs 4.5)  Error text on background  [#ff9b9b on #0d0e10]
+PASS  15.97:1 (needs 4.5)  Primary button: dark text on ivory  [#0d0e10 on #efe9dd]
+PASS   9.82:1 (needs 4.5)  Primary button hover: dark text on champagne  [#0d0e10 on #cdb68f]
+PASS   5.24:1 (needs 3.0)  Focus ring (blue) against background (UI, 3:1)  [#4d7dff on #0d0e10]
+PASS   4.81:1 (needs 3.0)  Focus ring (blue) against panel (UI, 3:1)  [#4d7dff on #17181c]
+
+12/12 pairs meet WCAG AA

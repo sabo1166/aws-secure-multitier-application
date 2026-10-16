@@ -1,0 +1,9 @@
+# E-018 local health checks, run by Claude on 2026-10-15 15:19 UTC against a local server on SQLite (uvicorn backend.main:create_app --factory)
+$ curl -s http://127.0.0.1:8127/health
+{"status":"ok"}
+$ curl -s http://127.0.0.1:8127/health/ready
+{"status":"ok","database":"ok"}
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8127/products/does-not-exist
+404
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8127/static/images/hero.svg   (frontend/static is served)
+200

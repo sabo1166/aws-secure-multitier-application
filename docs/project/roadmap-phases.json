@@ -1,0 +1,136 @@
+{
+  "_comment": "Authored content for the roadmap page. Statuses are NOT stored here: tools/build-roadmap.mjs computes them from EVIDENCE_REGISTER.md, DECISIONS.md and the files named below, and writes frontend/static/data/roadmap.json.",
+  "phases": [
+    {
+      "id": "foundation",
+      "number": 1,
+      "title": "Application foundation",
+      "short": "Foundation",
+      "summary": "A storefront that runs with no AWS account, so a failure in the cloud can be blamed on the infrastructure and not on the code.",
+      "objective": "Build the application on SQLite first, with the same code paths that will later talk to RDS.",
+      "tasks": [
+        { "text": "Python backend in backend/, server-rendered frontend in frontend/", "kind": "evidence", "evidence": ["E-022", "E-016"], "detail": "Installs and passes its tests from a clean virtual environment; CSS, fonts, JavaScript and images load in a real browser." },
+        { "text": "Configuration through environment variables; production refuses weak secrets and SQLite", "kind": "evidence", "evidence": ["E-015"], "detail": "Covered by the configuration tests." },
+        { "text": "SQLAlchemy models, per-size stock, persistence on SQLite", "kind": "evidence", "evidence": ["E-015"], "detail": "Orders survive an application restart in the tests." },
+        { "text": "The same code on MySQL (RDS): connection, TLS option, schema creation", "kind": "evidence", "evidence": ["E-006", "E-008"], "implementedInCode": true, "detail": "URL building and the TLS option are unit tested; no run against a live MySQL yet." }
+      ],
+      "validation": [
+        "pytest passes from a clean virtual environment (E-022).",
+        "The browser test confirms the stylesheet, fonts, scripts and images load from frontend/static (E-016).",
+        "A demo order is written and read back on SQLite (E-015)."
+      ],
+      "notInScope": [
+        "Customer accounts and login. Nothing is built, so there is no authentication or authorization to verify. An order is visible only to the browser session that placed it."
+      ]
+    },
+    {
+      "id": "security",
+      "number": 2,
+      "title": "Security design",
+      "short": "Security",
+      "summary": "Decide where each control lives (application code, network, IAM) and mark which ones exist today.",
+      "objective": "Every control has an owner layer and a status; none is claimed without a test or a screenshot.",
+      "tasks": [
+        { "text": "Server-side prices and stock, input validation, CSRF, parameterised SQL, strict CSP, safe errors", "kind": "evidence", "evidence": ["E-015", "E-016"], "detail": "Each control has a test that fails when it is removed." },
+        { "text": "Dependency vulnerability scan", "kind": "evidence", "evidence": ["E-021"], "detail": "One manual pip-audit run; repeat before publishing." },
+        { "text": "Secrets read from Secrets Manager, not from code or user data", "kind": "evidence", "evidence": ["E-013"], "implementedInCode": true, "detail": "Loader written and tested with a fake client; nothing read from AWS yet." },
+        { "text": "Security-group chain (alb-sg, app-sg, db-sg) and no SSH", "kind": "evidence", "evidence": ["E-005"], "detail": "Designed; the rules do not exist in AWS yet." },
+        { "text": "Instance role limited to two secrets; database user with DML rights only", "kind": "evidence", "evidence": ["E-011"], "detail": "Designed; waiting for the AWS build." },
+        { "text": "Security design written, with the status of every control", "kind": "deliverable", "files": ["docs/security.md"] }
+      ],
+      "validation": [
+        "Mutation check: deliberately breaking six behaviours makes tests fail each time (E-015).",
+        "AWS controls are checked by behaviour, not by screenshots of settings: a failed connection from the internet (E-007)."
+      ],
+      "notInScope": [
+        "HTTPS, WAF and rate limiting. Listed as known limitations."
+      ]
+    },
+    {
+      "id": "architecture",
+      "number": 3,
+      "title": "AWS architecture design",
+      "short": "Design",
+      "summary": "A three-tier layout across two Availability Zones, written down with its trade-offs. This phase is design only.",
+      "objective": "A plan specific enough to build from the Console, including how it fails.",
+      "tasks": [
+        { "text": "Network plan: one VPC, six subnets, route tables, security-group chain", "kind": "deliverable", "files": ["docs/architecture.md"] },
+        { "text": "Decision log with the alternatives that were rejected", "kind": "deliverable", "files": ["docs/project/DECISIONS.md"] },
+        { "text": "Diagram: static image and an animated traffic-flow view", "kind": "deliverable", "files": ["architecture.png", "frontend/templates/architecture.html"] }
+      ],
+      "validation": [
+        "Subnet CIDRs, ports and group names in the animated diagram match docs/architecture.md (checked by tools/check-docs.mjs).",
+        "Failure behaviour is written down: an AZ-a failure likely means an outage, because the NAT gateway and the database are both in AZ a."
+      ],
+      "notInScope": [
+        "Route 53, CloudFront, WAF, Multi-AZ RDS, a NAT gateway per AZ. They are production steps, not part of this design."
+      ]
+    },
+    {
+      "id": "implementation",
+      "number": 4,
+      "title": "Manual AWS implementation",
+      "short": "Build",
+      "summary": "Create every resource by hand in the Console, one checkpoint at a time, with a screenshot for each.",
+      "objective": "Build the design and capture real evidence at each gate before moving on.",
+      "tasks": [
+        { "text": "CP0: budget alert, root MFA, non-root identity, Region chosen", "kind": "evidence", "evidence": ["E-001", "E-002"], "needs": ["D-002", "D-012"] },
+        { "text": "CP1: VPC, six subnets, internet gateway, route tables", "kind": "evidence", "evidence": ["E-003", "E-004"] },
+        { "text": "CP2: security groups", "kind": "evidence", "evidence": ["E-005"] },
+        { "text": "CP3: RDS MySQL in private subnets, encrypted", "kind": "evidence", "evidence": ["E-006"] },
+        { "text": "CP4: IAM role, NAT gateway, launch template, first instance through Session Manager", "kind": "evidence", "evidence": ["E-011", "E-013"] },
+        { "text": "CP5: target group, load balancer, two instances", "kind": "evidence", "evidence": ["E-009"] }
+      ],
+      "validation": [
+        "Each checkpoint's gate in docs/checkpoints/ or the RDS and deployment guides is met.",
+        "Screenshots are redacted and saved under screenshots/01 to 05, then recorded in the evidence register."
+      ],
+      "notInScope": [
+        "Terraform, CloudFormation, CI/CD, containers. The build is deliberately manual."
+      ]
+    },
+    {
+      "id": "verification",
+      "number": 5,
+      "title": "Testing and verification",
+      "short": "Verify",
+      "summary": "Show that the parts behave as designed, not just that they are configured. A healthy target group is not a working checkout.",
+      "objective": "Every security and availability claim is backed by an observed result.",
+      "tasks": [
+        { "text": "Automated application tests", "kind": "evidence", "evidence": ["E-015"] },
+        { "text": "Real-browser checks: flows, keyboard order, mobile layout, static assets", "kind": "evidence", "evidence": ["E-016"] },
+        { "text": "Configuration checks: clean-room install, ignore rules, no private files", "kind": "evidence", "evidence": ["E-022", "E-023"] },
+        { "text": "A demo order through the load balancer lands in RDS", "kind": "evidence", "evidence": ["E-008"] },
+        { "text": "Database unreachable from the internet; instances not directly reachable", "kind": "evidence", "evidence": ["E-007", "E-010"] },
+        { "text": "Terminate one instance; the service survives and is replaced", "kind": "evidence", "evidence": ["E-012"] },
+        { "text": "Defects recorded with their causes and fixes", "kind": "deliverable", "files": ["docs/troubleshooting.md"], "detail": "Local defects are logged. The AWS issue log is empty because nothing has been built." }
+      ],
+      "validation": [
+        "A claim is VERIFIED only with an evidence file and an observed result (docs/project/EVIDENCE_REGISTER.md).",
+        "Each test states what it proves and what it does not."
+      ],
+      "notInScope": [
+        "Load testing, penetration testing, MySQL concurrency tests. Not planned for this project."
+      ]
+    },
+    {
+      "id": "review",
+      "number": 6,
+      "title": "Final review",
+      "short": "Review",
+      "summary": "Re-run the reviews with real AWS evidence, check the cost, tear everything down, and update the write-ups.",
+      "objective": "Leave a repository where every claim matches its evidence and nothing keeps billing.",
+      "tasks": [
+        { "text": "Review passes on the local build (code, security, documentation, interface)", "kind": "deliverable", "files": ["docs/project/QUALITY_REVIEW.md"] },
+        { "text": "Case study, notebook and summary written for the local build", "kind": "deliverable", "files": ["docs/visual/01-technical-case-study.pdf", "docs/visual/02-visual-project-notebook.pdf", "docs/visual/03-notebook-project-summary.pdf"] },
+        { "text": "Re-review and update the write-ups with real AWS results", "kind": "manual", "status": "planned", "detail": "Cannot start before the AWS build has evidence." },
+        { "text": "Cost check, teardown in order, billing reviewed the next day", "kind": "evidence", "evidence": ["E-014"] }
+      ],
+      "validation": [
+        "Resource lists are empty for every service in the build Region (E-014).",
+        "README, case study and notebook state only what the register supports."
+      ],
+      "notInScope": []
+    }
+  ]
+}

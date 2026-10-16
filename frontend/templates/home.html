@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}SOLE ATELIER · Built Different. Worn Rare.{% endblock %}
+{% block content %}
+<section class="stage-hero" aria-labelledby="hero-title">
+  <div class="wrap stage-grid">
+    <div class="stage-copy">
+      <p class="eyebrow">Season 01 &middot; Limited releases</p>
+      <h1 id="hero-title">Built Different.<br><em>Worn Rare.</em></h1>
+      <p class="lede">Discover distinctive silhouettes and carefully curated sneaker culture.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/shop">Explore the Collection</a>
+        <a class="btn btn-ghost" href="/about">Discover the Atelier</a>
+      </div>
+      <p class="support">Exceptional design. Unmistakable presence.</p>
+    </div>
+    <div class="stage">
+      <div class="stage-world">
+        <div class="stage-glow"></div>
+        <div class="stage-ring"></div>
+        <div class="stage-ring-2"></div>
+        <div class="stage-plate">
+          <img src="/static/images/products/noir-01.svg" alt="NOIR / 01, an original illustration of a near-black low-top sneaker with a champagne accent" width="1000" height="1000" fetchpriority="high">
+        </div>
+        <div class="stage-chip a"><strong>$245.00</strong>NOIR / 01 &middot; Noir / Champagne</div>
+        <div class="stage-chip b">New arrival<br>Sizes 7 to 11</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap" aria-labelledby="featured-title">
+  <div class="section-head">
+    <div><p class="eyebrow">The Selection</p><h2 id="featured-title">Featured pairs</h2></div>
+    <a class="link-quiet" href="/shop">View all {{ total }} &rarr;</a>
+  </div>
+  <div class="grid">
+    {% for p in featured %}{% include "_card.html" %}{% endfor %}
+  </div>
+</section>
+
+<section class="section wrap" aria-labelledby="collections-title">
+  <div class="section-head">
+    <div><p class="eyebrow">Shop by collection</p><h2 id="collections-title">Four ways in</h2></div>
+    <a class="link-quiet" href="/collections">All collections &rarr;</a>
+  </div>
+  <div class="tiles">
+    <a class="tile" href="/shop?category=essentials"><img src="/static/images/products/noir-01.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">01</span><span class="tile-name">The Essentials</span></a>
+    <a class="tile" href="/shop?category=contemporary-classics"><img src="/static/images/products/monolith-high.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">02</span><span class="tile-name">Contemporary Classics</span></a>
+    <a class="tile" href="/shop?category=statement-silhouettes"><img src="/static/images/products/chrome-runner.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">03</span><span class="tile-name">Statement Silhouettes</span></a>
+    <a class="tile" href="/shop?new=true"><img src="/static/images/products/velocity-form.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">04</span><span class="tile-name">New Arrivals</span></a>
+  </div>
+</section>
+
+<section class="story" aria-labelledby="story-title">
+  <div class="wrap story-grid">
+    <h2 id="story-title">A short shelf, <em>chosen with intent.</em></h2>
+    <div class="story-copy">
+      <p>SOLE ATELIER is a point of view before it is a catalogue. We look for silhouettes with presence: proportion first, ornament second, and a single considered accent where it earns its place.</p>
+      <p>The shelf stays short on purpose. If a pair is not distinctive, well proportioned and genuinely wearable, it does not make the edit.</p>
+      <ul class="principles">
+        <li><strong>Curated.</strong> Few pairs, each with a reason to exist.</li>
+        <li><strong>Considered.</strong> Shape, colour and detail judged together.</li>
+        <li><strong>Candid.</strong> This is a demonstration store, and we say so.</li>
+      </ul>
+      <a class="link-quiet" href="/about">Read the story &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap newsletter" aria-labelledby="news-title">
+  <div>
+    <p class="eyebrow">Letters from the Atelier</p>
+    <h2 id="news-title">First word on new arrivals</h2>
+    <p class="muted">Demonstration only: no email service is connected, so your address is validated but never stored.</p>
+  </div>
+  <form id="newsletter-form" novalidate>
+    <label class="sr-only" for="news-email">Email address</label>
+    <input id="news-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+    <button class="btn btn-primary" type="submit">Join the list</button>
+    <p class="form-note" id="newsletter-msg" role="status" aria-live="polite"></p>
+  </form>
+</section>
+{% endblock %}

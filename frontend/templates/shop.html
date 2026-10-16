@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Shop · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <p class="eyebrow">{% if new %}New Arrivals{% elif category %}{{ collections[category] }}{% else %}The Collection{% endif %}</p>
+  <h1>{% if new %}New Arrivals{% elif category %}{{ collections[category] }}{% else %}All sneakers{% endif %}</h1>
+  <p class="muted" data-result-count>{{ products|length }} {{ 'pair' if products|length == 1 else 'pairs' }}{% if q %} matching &ldquo;{{ q }}&rdquo;{% endif %}</p>
+</section>
+
+<section class="wrap">
+  <div class="chips" aria-label="Filter by collection">
+    {% for label, href, active in chips %}
+      <a class="chip" href="{{ href }}" {% if active %}aria-current="true"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <form class="filters" method="get" action="/shop" id="filter-form">
+    {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+    {% if new %}<input type="hidden" name="new" value="true">{% endif %}
+    <div class="field">
+      <label for="f-q">Search by name</label>
+      <input id="f-q" name="q" type="search" value="{{ q }}" maxlength="80" placeholder="e.g. Noir">
+    </div>
+    <div class="field">
+      <label for="f-sort">Sort by</label>
+      <select id="f-sort" name="sort" data-autosubmit>
+        {% for key, label in sorts.items() %}<option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-ghost" type="submit">Apply</button>
+  </form>
+
+  {% if products %}
+    <div class="grid grid-shop">
+      {% for p in products %}{% include "_card.html" %}{% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <h2>Nothing matches{% if q %} &ldquo;{{ q }}&rdquo;{% endif %}</h2>
+      <p class="muted">Try a different name, or clear the filters to see every pair.</p>
+      <a class="btn btn-ghost" href="/shop">Clear filters</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

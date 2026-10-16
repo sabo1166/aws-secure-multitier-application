@@ -1,0 +1,11 @@
+# Runtime dependencies. Versions are the ones the test suite was run against (see docs/testing.md).
+fastapi==0.143.2
+uvicorn[standard]==0.54.0
+SQLAlchemy==2.1.4
+PyMySQL==1.2.3
+Jinja2==3.1.6
+itsdangerous==2.2.0
+python-multipart==0.0.32
+email-validator==2.3.0
+# Only imported when DB_SECRET_ARN is set (AWS deployment). Not needed for local SQLite.
+boto3==1.43.67

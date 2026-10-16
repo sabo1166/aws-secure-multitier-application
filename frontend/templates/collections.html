@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Collections · {{ store_name }}{% endblock %}
+{% block content %}
+<section class="page-head wrap">
+  <p class="eyebrow">Collections</p>
+  <h1>Four ways to shop</h1>
+  <p class="muted">Merchandising groups for this demonstration catalogue. They are our own editorial categories, not brand affiliations.</p>
+</section>
+<section class="wrap">
+  <div class="tiles tiles-wide">
+    <a class="tile" href="/shop?category=essentials"><img src="/static/images/products/atelier-low.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">01</span><span class="tile-name">The Essentials</span><span class="tile-sub">{{ counts['essentials'] }} pairs &middot; Quiet, versatile, everyday</span></a>
+    <a class="tile" href="/shop?category=contemporary-classics"><img src="/static/images/products/studio-04.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">02</span><span class="tile-name">Contemporary Classics</span><span class="tile-sub">{{ counts['contemporary-classics'] }} pairs &middot; Familiar shapes, reconsidered</span></a>
+    <a class="tile" href="/shop?category=statement-silhouettes"><img src="/static/images/products/velocity-form.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">03</span><span class="tile-name">Statement Silhouettes</span><span class="tile-sub">{{ counts['statement-silhouettes'] }} pairs &middot; Pace and presence</span></a>
+    <a class="tile" href="/shop?new=true"><img src="/static/images/products/noir-01.svg" alt="" loading="lazy" width="1000" height="1000"><span class="tile-no">04</span><span class="tile-name">New Arrivals</span><span class="tile-sub">{{ new_count }} pairs &middot; Marked in the catalogue data</span></a>
+  </div>
+</section>
+{% endblock %}
